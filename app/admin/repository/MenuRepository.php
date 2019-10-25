@@ -31,8 +31,8 @@ class MenuRepository
      * @param int $pid 父级ID
      * @return null
      * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
      * @author staitc7 <static7@qq.com>
      */
 
@@ -45,14 +45,14 @@ class MenuRepository
 
     /**
      * 获得菜单全部数据
-     * @author staitc7 <static7@qq.com>
      * @param array $map 条件
      * @param array $field 字段
      * @param array $order 排序
      * @return mixed
      * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * @author staitc7 <static7@qq.com>
      */
     public function lists(?array $map = [], ?array $field = null, ?array $order = null)
     {
@@ -62,13 +62,13 @@ class MenuRepository
 
     /**
      * 获取所有菜单
-     * @author staitc7 <static7@qq.com>
      * @param array|null $map
      * @param array|null $field
      * @return mixed
      * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * @author staitc7 <static7@qq.com>
      */
     public function menuAll(?array $map = [], ?array $field = null)
     {
@@ -79,13 +79,13 @@ class MenuRepository
 
     /**
      * 查询菜单详情
-     * @author staitc7 <static7@qq.com>
      * @param array|null $map
      * @param array|null $field
      * @return mixed
      * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * @author staitc7 <static7@qq.com>
      */
     public function edit(?array $map = [], ?array $field = null)
     {

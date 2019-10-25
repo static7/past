@@ -25,12 +25,12 @@ class MemberRepository
 
     /**
      * 登录用户信息
-     * @author staitc7 <static7@qq.com>
      * @param int|null $userId
      * @return mixed
      * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * @author staitc7 <static7@qq.com>
      */
     public function memberLogin(?int $userId)
     {
@@ -41,6 +41,7 @@ class MemberRepository
         }
         //更新登录信息
         $object->login++;
+        $object->last_login_time=Request::time();
         $object->last_login_ip=ip2long(Request::ip());
         $object->save();
         return $object;

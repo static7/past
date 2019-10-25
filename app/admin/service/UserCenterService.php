@@ -28,6 +28,7 @@ class UserCenterService
      * @param array|null $param
      * @return mixed
      * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
      * @author staitc7 <static7@qq.com>
      */
@@ -45,10 +46,10 @@ class UserCenterService
 
     /**
      * 用户中心列表
-     * @author staitc7 <static7@qq.com>
      * @param array|null $param
      * @return mixed
-     * @throws \think\exception\DbException
+     * @throws \think\db\exception\DbException
+     * @author staitc7 <static7@qq.com>
      */
     public function getListPage(?array $param=[])
     {

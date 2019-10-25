@@ -50,10 +50,10 @@ class MemberService
      * 用户登录
      * @param int|null $userId
      * @return mixed
-     * @author staitc7 <static7@qq.com>
      * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * @author staitc7 <static7@qq.com>
      */
     public function memberlogin(?int $userId = null)
     {
