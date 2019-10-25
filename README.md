@@ -108,7 +108,7 @@ sql-mode="NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"tp6
 ~~~     
 
 
-###感谢开源贡献者
+### 感谢开源贡献者
 
 * thinkphp 官方
 * layui 前端框架
