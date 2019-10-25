@@ -1,7 +1,8 @@
 # Static7 基础管理系统  
 
 
-###ThinkPHP 6.0 正式版+Layui 2.5.5     
+### ThinkPHP 6.0 正式版+Layui 2.5.5 
+
 演示传送门: [https://demo.calm7.com](https://demo.calm7.com "点击一下就飞过去咯") 帐号密码均为:test001
 
 
