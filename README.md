@@ -4,6 +4,7 @@
 ###ThinkPHP 6.0 正式版+Layui 2.5.5     
 演示传送门: [https://demo.calm7.com](https://demo.calm7.com "点击一下就飞过去咯") 帐号密码均为:test001
 
+`项目内的超级管理员 帐号:admin 密码:admin123`
 
 ### 特点  
 
@@ -90,13 +91,18 @@ host=tp6.com
     ],
 ~~~
 
+### mysql数据库    
+
+data目录下的`past.sql`文件    
+请自行导入数据库默认库名为`past`        
+字符集为`utf8mb4`   
 
 关闭mysql 的严格模式,并修改my.ini
-~~~mysql
+~~~sql
 sql-mode="STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"   
 ~~~
 修改为
-~~~mysql
+~~~sql
 sql-mode="NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"tp6
 ~~~     
 
