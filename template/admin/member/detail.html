@@ -1,0 +1,75 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>会员详情</legend>
+</fieldset>
+<form class="layui-form" action="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户ID:</label>
+        <div class="layui-input-block pt-10">
+            {$info.user_id ?? ''}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">昵称:</label>
+        <div class="layui-input-block pt-10">
+            {$info.nickname ?? ''}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">性别:</label>
+        <div class="layui-input-block pt-10">
+            {$info.sex|default=''|change_status=['男','女']}
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">生日:</label>
+        <div class="layui-input-block pt-10">
+            {$info.birthday ?? ''}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">注册IP:</label>
+        <div class="layui-input-block pt-10">
+            {$info.reg_ip|default=''|long2ip}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">注册时间:</label>
+        <div class="layui-input-block pt-10">
+            {$info.reg_time|default=''|time_format}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">最后登录时间:</label>
+        <div class="layui-input-block pt-10">
+            {$info.last_login_time ?? ''}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">最后登录IP:</label>
+        <div class="layui-input-block pt-10">
+            {$info.last_login_time ?? ''}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">状态:</label>
+        <div class="layui-input-block pt-10">
+            {$info.status|default=''|change_status=['禁用','正常']}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <button class="layui-btn layui-btn-primary retreat">取消</button>
+    </div>
+</form>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Member/index')}");
+    layui.use(['jquery', 'form'], function () {
+
+    });
+</script>
+{/block}

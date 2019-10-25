@@ -1,0 +1,372 @@
+{extend name="base/base" /}
+{block name="left"}
+{include file="document/sidebar" /}
+{/block}
+{block name="body"}
+<div class="layui-tab layui-tab-brief" lay-filter="category">
+    <ul class="layui-tab-title">
+        <li class="layui-this">基础</li>
+        <li>扩展</li>
+        <li>内容</li>
+        <li>附件</li>
+    </ul>
+    <form class="layui-tab-content layui-form" method="post" action="{:Route::buildUrl('Document/renew')}">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-row">
+                <div class="layui-col-xs12 layui-col-md5">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">标题</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="title" value="{$info.title ?? ''}" placeholder="请输入标题"
+                                   class="layui-input" lay-verify="required">
+                            <div class="layui-form-mid layui-word-aux">文档标题</div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">关键词</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="keywords" value="{$info.documentArticle.keywords ?? ''}" placeholder="请输入关键词"
+                                   class="layui-input">
+                            <div class="layui-form-mid layui-word-aux">关键词用英文逗号分开</div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">描述</label>
+                        <div class="layui-input-block">
+                            <textarea name="description" placeholder="请输入描述" class="layui-textarea">{$info.description ?? ''}</textarea>
+                            <div class="layui-form-mid layui-word-aux">简介、描述、题记、导读</div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">标签</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="label" value="{$info.label ?? ''}" placeholder="请输入标识"
+                                   class="layui-input">
+                            <div class="layui-form-mid layui-word-aux">标签用英文逗号","分开</div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">标识</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="name" value="{$info.name ?? ''}" placeholder="请输入标识"
+                                   class="layui-input">
+                            <div class="layui-form-mid layui-word-aux">同一根节点下标识不重复</div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">原文链接</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="original" value="{$info.original ?? ''}"
+                                   placeholder="请输入原文链接" class="layui-input">
+                            <div class="layui-form-mid layui-word-aux">转载原文章的地址，可选</div>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">创建时间</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="create_time"  value="{$info.create_time ?: ''}"
+                                   placeholder="请输入创建时间" class="layui-input date-item">
+                            <div class="layui-form-mid layui-word-aux"></div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">截至时间</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="deadline" value="{$info.deadline ?: ''}" placeholder="请输入截至时间"
+                                   class="layui-input date-item">
+                            <div class="layui-form-mid layui-word-aux">默认是空 代表永久有效</div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">详情页显示模板</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="template" value="{$info.documentArticle.template ?? ''}" placeholder="请输入详情页显示模板"
+                                   class="layui-input">
+                            <div class="layui-form-mid layui-word-aux">参照fetch方法参数的定义</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-xs12 layui-col-md5">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">可见性</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="display" value="0" title="不可见">
+                            <input type="radio" name="display" value="1" title="所有人可见">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">优先级</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="level" value="{$info.level ?? ''}" placeholder="请输入优先级"
+                                   class="layui-input">
+                            <div class="layui-form-mid layui-word-aux">越高排序越靠前</div>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item" pane="">
+                        <label class="layui-form-label">推荐位</label>
+                        <div class="layui-input-block">
+                            {volist name=":Config::get('admin_config.document_position')" id="p"}
+                            <input type="checkbox" name="position[{$i}]" value="{$key ?? ''}" lay-skin="primary" title="{$p}" {if
+                                   condition="check_position($info['position'] ?? 0,$key)" }checked{/if} >
+                            {/volist}
+                        </div>
+                        <div class="layui-form-mid layui-word-aux">多个推荐则将其推荐值相加</div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">浏览量</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="view" lay-verify="number" value="{$info.view ?? 0}" placeholder="请输入浏览量" class="layui-input">
+                            <div class="layui-form-mid layui-word-aux"></div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">评论数</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="comment" lay-verify="number" value="{$info.comment ?? 0}" placeholder="请输入评论数" class="layui-input">
+                            <div class="layui-form-mid layui-word-aux"></div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">收藏数</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="bookmark" lay-verify="number" value="{$info.documentArticle.bookmark ?? 0}" placeholder="请输入截至时间" class="layui-input">
+                            <div class="layui-form-mid layui-word-aux"></div>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">封面</label>
+                        <div class="layui-input-block">
+                            <button type="button" class="layui-btn" id="articlePicture"><i class="layui-icon">&#xe67c;</i>上传封面</button>&nbsp;
+                            <button type="button" class="layui-btn layui-btn-warm picture_before" disabled>上传</button>
+                        </div>
+                        {assign name="cover" value="$info.cover_id|default=0|get_picture_url" /}
+                        <input type="hidden" name="cover_id" id="cover_id" value="{$info.cover_id ?? 0}">
+                        <div class="layui-input-block picture" style="padding-top: 3px;">
+                            <img src="{$cover ?? ''}" alt="" height=114 width=185 id="article_picture" class="layui-upload-img">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-xs12 layui-col-md12">
+                    <div class="layui-form-item layui-form-text">
+                        <div class="layui-input-block" style="margin-left: 0px;">
+                            <!--<textarea name="content" id="layedit" lay-verify="content" style="display: none">{$info.documentArticle.content ?? ''}</textarea>-->
+                            <!-- 加载编辑器的容器 -->
+                            <textarea id="container" name="content">
+                                {$info.documentArticle.content ?? ''}
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-xs12 layui-col-md5">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">附件</label>
+                        <div class="layui-input-block">
+                            <button type="button" class="layui-btn" id="articleFile"><i class="layui-icon">&#xe67c;</i>上传附件</button>
+                            <button type="button" class="layui-btn layui-btn-warm file_before" disabled>上传</button>
+                        </div>
+                        <input type="hidden" name="file_id" id="file_id" value="{$info.documentArticle.file_id ?? 0}">
+                        <div class="layui-input-block">
+                            <blockquote class="layui-elem-quote layui-quote-nm file_info" style="margin-top: 10px;">
+                                {empty name="info.documentArticle.file_id"}
+                                无文件信息
+                                {else/}
+                                {assign name="file" value="$info.documentArticle.file_id|default=0|get_file_url" /}
+                                <a class="underline" href="{:Request::domain()}{$file ?? ''}">{:Request::domain()}{$file ?? ''}</a>
+                                {/empty}
+                            </blockquote>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+
+                <input type="hidden" name="id" value="{$info.id ?? ''}">
+                <input type="hidden" name="pid" value="{$info.pid ?? ''}">
+                <input type="hidden" name="group_id" value="{$info.group_id ?? ''}">
+                <input type="hidden" name="user_id" value="{$info.user_id ?? ''}">
+                <input type="hidden" name="category_id" value="{empty name='info.id'}{$category_id ?? ''}{else /}{$info.category_id ?? ''}{/empty}">
+                <button class="layui-btn" lay-submit lay-filter="document">立即提交</button>
+                <button class="layui-btn layui-btn-primary retreat">取消</button>
+                {assign name="open_draftbox" value=":Config::get('admin_config.open_draftbox')" /}
+                {if $open_draftbox and (empty($info.id) === true or $info.draft == 1)}
+                <button id="autoSave" class="layui-btn layui-btn-primary" formaction="{:Route::buildUrl('Document/autoSave')}" type="submit">存草稿</button>
+                <input type="hidden" name="draft" value="{$info.draft ?? 1}">
+                {/if}
+            </div>
+        </div>
+    </form>
+
+</div>
+
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    window.UEDITOR_HOME_URL='__STATIC__/ueditor/';
+    window.SERVERURL="{:Route::buildUrl('Document/ueditorCheck')}";
+</script>
+<script type="text/javascript" src="__STATIC__/ueditor/ueditor.config.js"></script>
+<script type="text/javascript" src="__STATIC__/ueditor/ueditor.all.min.js"></script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Document/edit')}");
+    setChoose("display", "{$info.display ?? 1}")
+    layui.use(['jquery', 'element','upload','laydate','layedit'], function () {
+        var picture_before,file_before,file_list,interval;
+
+        //上传图片
+        var upload_picture = layui.upload.render({
+            elem: '#articlePicture',
+            url: "{:Route::buildUrl('Document/documentPicture')}",
+            auto: false,
+            bindAction: ".picture_before",
+            field: "documentPicture",
+            accept: 'images',
+            size: 2048,
+            choose: function (obj) {
+                obj.preview(function (index, file, result) {
+                    layui.$('#article_picture').attr('src', result).removeClass('layui-hide');
+                    picture_before = layui.$('.picture_before');
+                    picture_before.prop('disabled', false);
+                });
+            },
+            before: function () {
+                loading = layui.layer.load(2); //上传loading
+            },
+            done: function (res) {
+                layui.layer.close(loading); //关闭loading
+                if (res.code == 1) {
+                    layui.$('#article_picture').attr('src', res.data.url);
+                    layui.$('#cover_id').val(res.data.id);
+                    picture_before.prop('disabled', true);
+                } else {
+                    console.log(res);
+                }
+                return layui.layer.msg(res.msg);
+            }
+        });
+        layui.$('#article_picture').on('click', function () {
+            layui.layer.photos({
+                photos: ".picture"
+            });
+        });
+
+        //上传文件
+        var upload_file=layui.upload.render({
+            elem: '#articleFile',
+            url: "{:Route::buildUrl('Document/documentFile',['field'=>'documentFile'])}",
+            accept: 'file',
+            auto: false,
+            multiple:false,
+            field:"documentFile",
+            bindAction: '.file_before',
+            choose: function(obj){
+                file_list=obj.pushFile();
+                /*读取本地文件*/
+                obj.preview(function(index, file){
+                    layui.$('.file_info').html('文件名称: '+file.name+' 文件大小: '+(file.size/1024/1024).toFixed(2)+'MB');
+                    file_before = layui.$('.file_before');
+                    file_before.prop('disabled',false);
+                });
+            },
+            before: function(){
+                loading= layui.layer.load(2); //上传loading
+            },
+            done: function (res,index) {
+                layui.layer.close(loading); //关闭loading
+                if (res.state == "SUCCESS") { //上传成功
+                    layui.$('#file_id').val(res.id);
+                    file_before.prop('disabled',true);
+                    delete file_list[index];
+                }else {
+                    console.log(res);
+                }
+                layui.layer.msg(res.msg);
+            }
+        });
+        //时间选择
+        layui.$('.date-item').each(function(){
+            layui.laydate.render({
+                elem: this, //指定元素
+                format:'yyyy-MM-dd HH:mm:ss',
+                type:'datetime',
+                trigger: 'click'
+            });
+        });
+
+        //监听提交
+        layui.form.on('submit(document)', function (data) {
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            })
+            return false;
+        });
+
+        "{if $open_draftbox and (empty($info.id) === true or $info.draft == 1)}"
+        //开启自动保存
+        layui.$('#autoSave').on('click',function () {
+            var that = layui.$(this);
+            that.prop('disabled', true);
+            layui.$.post(layui.$(this).attr('formaction'),layui.$("form").serialize(),function(data){
+                that.prop('disabled', false);
+                if (data.code === 0) {
+                    layui.$('input[name="id"]').val(data.data);
+                    console.log(data.msg);
+                }else{
+                    alert_msg('自动保存失败:'+data.msg,0);
+                }
+            });
+            clearInterval(interval);//重新开始定时器
+            autoSaveDraft();
+            return false;
+        });
+        autoSaveDraft();
+
+        //每隔一段时间保存草稿
+        function autoSaveDraft(){
+            interval = setInterval(function(){
+                //只有基础信息填写了，才会触发
+                var title = layui.$('input[name="title"]').val(),
+                    description = layui.$('textarea[name="description"]').val();
+                if(title && description){
+                    layui.$('#autoSave').click();
+                };
+            }, 1000*parseInt("{:Config::get('admin_config.draft_aotosave_interval')}"));
+        }
+        "{/if}"
+    });
+    //编辑器
+    var ue=UE.getEditor('container');
+    UE.Editor.prototype._bkGetActionUrl = UE.Editor.prototype.getActionUrl;
+    UE.Editor.prototype.getActionUrl = function(action) {
+        if (action == 'uploadimage' || action == 'uploadscrawl' || action == 'uploadimage') {
+            return "{:Route::buildUrl('Document/picture')}";
+        } else if (action == 'uploadvideo') {
+            return "{:Route::buildUrl('Document/documentFile',['field'=>'file'])}";
+        } else if (action == 'uploadfile') {
+            return "{:Route::buildUrl('Document/documentFile')}";
+        } else {
+            return this._bkGetActionUrl.call(this, action);
+        }
+    }
+</script>
+{/block}

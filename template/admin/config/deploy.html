@@ -1,0 +1,96 @@
+{extend name="base/base" /}
+
+{block name="body"}
+<blockquote class="layui-elem-quote">
+    Tips：保存配置后,请清除缓存!
+</blockquote>
+<div class="layui-tab layui-tab-brief" lay-filter="deploy_url">
+    {present name="type"}
+    <ul class="layui-tab-title">
+        {volist name='type' id='group'}
+        <li class="{eq name='group_id' value='$key'}layui-this{/eq}">
+            <a href="{:Route::buildUrl('deploy',['id'=>$key])}">{$group}配置</a>
+        </li>
+        {/volist}
+    </ul>
+    {/present}
+
+    <div class="layui-tab-content" style="padding-left: unset;">
+        <div class="layui-tab-item layui-show">
+            <form action="{:Route::buildUrl('setConfig')}" method="post" class="layui-form">
+                {volist name="list" id="config"}
+                <div class="layui-form-item">
+                    <label class="layui-form-label">{$config.title}</label>
+                    {switch name="config->getData('type')"}
+                    {case value="1"}
+                        <div class="layui-input-block w-400">
+                            <input type="text" name="config[{$config.name}]" value="{$config.value ?? ''}" class="layui-input">
+                            <div class="layui-form-mid layui-word-aux">{$config.remark}</div>
+                        </div>
+                    {/case}
+                    {case value="2"}
+                        <div class="layui-input-block w-400">
+                            <textarea name="config[{$config.name}]" class="layui-textarea" rows="4">{$config.value ?? ''}</textarea>
+                            <div class="layui-form-mid layui-word-aux">{$config.remark}</div>
+                        </div>
+                    {/case}
+                    {case value="3"}
+                        <div class="layui-input-block w-400">
+                            <textarea name="config[{$config.name}]" class="layui-textarea" rows="6">{$config.value ?? ''}</textarea>
+                            <div class="layui-form-mid layui-word-aux">{$config.remark}</div>
+                        </div>
+                    {/case}
+                    {case value="4"}
+                        <div class="layui-input-inline">
+                            <select name="config[{$config.name}]">
+                            {notempty name='config.extra'}
+                            {volist name=":parse_config_attr($config['extra'])" id="vo"}
+                                <option value="{$key}" {eq name='config.value' value='$key'}selected{/eq} >{$vo}</option>
+                            {/volist}
+                            {/notempty}
+                            </select>
+                        </div>
+                        <div class="layui-form-mid layui-word-aux">{$config.remark}</div>
+                    {/case}
+                    {case value="5"}
+                        <div class="layui-input-inline">
+                            <input type="number" name="config[{$config.name}]" value="{$config.value ?? ''}" class="layui-input">
+                        </div>
+                        <div class="layui-form-mid layui-word-aux">{$config.remark}</div>
+                    {/case}
+                    {/switch}
+                </div>
+                {/volist}
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="deploy" {empty name='list'}disabled{/empty}>立即提交</button>
+                        <button class="layui-btn layui-btn-primary retreat">取消</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Config/deploy')}");
+    layui.use(['jquery','element','form'], function () {
+        layui.form.render('select');
+        //监听提交
+        layui.form.on('submit(deploy)', function(data){
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            });
+            return false;
+        });
+
+        layui.element.on('tab(deploy_url)', function () {
+            layui.layer.load(2);
+            window.location.href = layui.$(this).children('a').attr('href');
+        });
+    });
+</script>
+
+{/block}

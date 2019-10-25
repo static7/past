@@ -1,0 +1,144 @@
+{extend name="base/base" /}
+{block name="left"}
+{include file="document/sidebar" /}
+{/block}
+{block name="body"}
+<div class="layui-form form-data" >
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">文章标题</label>
+            <div class="layui-input-inline">
+                <input type="text" name="title" placeholder="请输入标题" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+                <label class="layui-form-label w-auto">状态</label>
+            <div class="layui-input-inline">
+                <select name="status" class="select">
+                    <option value="">所有</option>
+                    <option value="0">禁用</option>
+                    <option value="1">正常</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">创建时间</label>
+            <div class="layui-input-inline" style="width: 290px">
+                <input type="text" name="create_time" placeholder="请输入日期范围" data-timeType="datetime" data-range="~" class="layui-input dateTime">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">查询</button>
+        </div>
+    </div>
+</div>
+<div class="layui-btn-group">
+    <button class="layui-btn layui-btn-sm layui-btn-normal ajax-post"url="{:Route::buildUrl('Document/setStatus')}" data-field="id" data-value="1">启用</button>
+    <button class="layui-btn layui-btn-sm layui-btn-warm ajax-post" url="{:Route::buildUrl('Document/setStatus')}" data-field="id" data-value="0">禁用</button>
+    <button class="layui-btn layui-btn-sm layui-btn-danger ajax-post" url="{:Route::buildUrl('Document/setStatus')}" data-field="id" data-value="-1">删除</button>
+</div>
+
+<table class="layui-hide" id="article" lay-filter="article"></table>
+{/block}
+{block name="script"}
+<script type="text/html" id="statusTpl">
+    {{#
+    switch(d.status){
+        case 0:
+            return "禁用";
+        break;
+        case 1:
+            return "正常";
+        break;
+        default:
+            return "未知";
+        break;
+    }
+}}
+</script>
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href='javascript:void(0);' lay-event="edit">编辑</a>
+    <a class="layui-table-link" href='javascript:void(0);' lay-event="status">
+        {{# if(d.status == 1){ }}禁用{{# }else{ }}启用{{# } }}
+    </a>
+    <a class="layui-table-link" href='javascript:void(0);' lay-event="delete">删除</a>
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Document/myDocument')}");
+    layui.use(['jquery', 'form','element','table','laydate', 'layer'], function () {
+        table_reload = layui.table.render({
+            elem: '#article',
+            url: "{:Route::buildUrl('Document/myDocumentInterface')}",
+            page: true,
+            method: 'post',
+            limit: 10,
+            id: "ids",
+            loading: false,
+            request: {
+                pageName: 'page',  //页码的参数名称，默认：page
+                limitName: 'limit'  //每页数据量的参数名，默认：limit
+            },
+            response: {
+                statusName: 'code', //数据状态的字段名称，默认：code
+                statusCode: 0, //成功的状态码，默认：0
+                msgName: 'msg', //状态信息的字段名称，默认：msg
+                countName: 'total', //数据总数的字段名称，默认：count
+                dataName: 'data', //数据列表的字段名称，默认：data
+            },
+            cols: [[ //标题栏
+                {checkbox: true},
+                {field: 'id', title: '编号'},
+                {field: 'title', title: '标题'},
+                {field: 'view', title: '浏览'},
+                {field: 'category', title: '分类'},
+                {field: 'create_time', title: '创建时间'},
+                {field: 'update_time', title: '更新时间'},
+                {field: 'status', title: '状态', templet: '#statusTpl'},
+                {fixed: 'right', title: '操作', align: 'center', toolbar: '#operating'},
+            ]]
+        });
+
+        //监听工具条
+        layui.table.on('tool(article)', function (obj) {
+            switch (obj.event) {
+                case "status":
+                    ajaxSubmit("{:Route::buildUrl('Document/setStatus')}",{'value':Math.abs(obj.data.status - 1), 'id': obj.data.id});
+                    break;
+                case 'delete':
+                    ajaxSubmit("{:Route::buildUrl('Document/setStatus')}", {'value': -1, 'id': obj.data.id});
+                    break;
+                case 'edit':
+                    window.location.href = createURL("{:Route::buildUrl('Document/edit')}", {'id': obj.data.id,'category_id':obj.data.category_id});
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+
+        //日期
+        layui.$('.dateTime').each(function () {
+            var datetime=layui.$(this).data('timeType'),
+                range=layui.$(this).data('range');
+            layui.laydate.render({
+                elem: this,
+                trigger: 'click',
+                type: datetime ? datetime :'datetime',
+                range: range ? range : true,
+            });
+        });
+
+        //搜索
+        layui.form.on('submit(search)', function (data) {
+            table_reload.reload({
+                where: data.field,
+                page: {
+                    pageNo: 1
+                }
+            });
+            return false;
+        });
+    });
+</script>
+
+{/block}

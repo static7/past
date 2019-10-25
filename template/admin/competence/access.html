@@ -1,0 +1,56 @@
+{php}use think\facade\{Route,Config,App,Request,Cache,Cookie,Session,Db}; {/php}
+<form class="layui-form">
+    <div id="xtree" style="padding: 10px 0 25px 5px;"></div>
+    <div class="layui-form-item ">
+        <div class="layui-input-block">
+            <input type="hidden" name="group_id" value="{$group_id ?? 0}">
+            <button class="layui-btn layui-hide" id="submit" lay-submit="" lay-filter="submit">立即提交</button>
+        </div>
+    </div>
+</form>
+<script type="text/javascript" src="__LAYUI__/modules/xtree.js"></script>
+<script type="text/javascript">
+    var xtree;
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'element', 'table'], function () {
+        layui.$(function () {
+            layui.$.get("{:Route::buildUrl('Competence/nodeInterface',['group_id'=>$group_id ?? '' ,'module'=>$module ?? ''])}", function (data) {
+                if (data.code == -1) {
+                    alert_msg(data.msg);
+                    return false;
+                } else {
+                    console.info(data.data)
+                    xtree = new layuiXtree({
+                        elem: 'xtree',   //(必填) 放置xtree的容器id，不要带#号
+                        form: layui.form,    //(必填) layui 的 from
+                        ckall: true,    //启用全选功能，默认值：false
+                        data: data.data,
+                    });
+                    layui.$('#submit').removeClass('layui-hide');
+                }
+            })
+        });
+
+        layui.form.on('submit(submit)', function () {
+            var value = '', rules, group_id;
+            layui.$.each(xtree.GetAllCheckBox(), function (i, e) {
+                if (e.checked === true && e.value !== 'on') {
+                    value += e.value + ',';
+                }
+            });
+            rules = value.substr(0, value.length - 1);
+            group_id = layui.$("input[name='group_id']").val();
+            layui.$.post("{:Route::buildUrl('Competence/updateAuthorization')}", {'group_id': group_id, 'rules': rules}, function (data) {
+                layui.layer.msg(data.msg, {offset: '70px'});
+                if (data.code === 1) {
+                    setTimeout(function () {
+                        layui.layer.close(pop_up);
+                    }, 1300);
+                }
+            });
+            console.log(rules);
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+
+
+    });
+</script>

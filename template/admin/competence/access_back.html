@@ -1,0 +1,73 @@
+{php}use think\facade\{Route,Config,App,Request,Cache,Cookie,Session,Db}; {/php}
+<div class="layui-form " style="margin: 0px 20px">
+    <div id="tree" class="pt-10"></div>
+    <div class="layui-form-item pt-10">
+        <div class="layui-input-block">
+            <input type="hidden" name="group_id" value="{$group_id ?? 0}">
+            <button class="layui-btn layui-hide" id="submit" lay-submit="" lay-filter="submit">立即提交</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'element', 'tree'], function () {
+        var dataTree=JSON.parse('{$menu|default=""|raw}');
+        layui.tree.render({
+            elem: '#tree',
+            data: dataTree ? dataTree : [],
+            showCheckbox: true,  //是否显示复选框,
+            id: 'treeId',
+            edit: false,
+            accordion: true,
+            showLine: true,
+            isJump: false, //是否允许点击节点时弹出新窗口跳转
+        });
+        if (dataTree){
+            layui.$('#submit').removeClass('layui-hide');
+        }
+
+        layui.$(function () {
+            layui.$.get("{:Route::buildUrl('Competence/nodeInterface',['group_id'=>$group_id ?? '' ,'module'=>$module ?? ''])}", function (data) {
+                if (data.code == 0) {
+                    alert_msg(data.msg);
+                    return false;
+                }
+                layui.tree.setChecked('treeId', data.data);
+            });
+        });
+
+
+        //提交
+        layui.form.on('submit(submit)', function () {
+            var value, rules,getChecked=layui.tree.getChecked('treeId');
+            value = ergodic(getChecked);//获取选中节点的数据
+            rules = value.substr(0, value.length - 1);
+            layui.$.post("{:Route::buildUrl('Competence/updateAuthorization')}", {
+                'group_id': '{$group_id ?? 0}', 'rules': rules
+            }, function (data) {
+                layui.layer.msg(data.msg, {offset: '70px'});
+                if (data.code === 1) {
+                    setTimeout(function () {
+                        layui.layer.close(pop_up);
+                    }, 1300);
+                }
+            });
+            console.log(rules);
+            return false;
+        });
+
+        var string = '';
+        function ergodic(array) {
+            if (!array) {
+                return '';
+            }
+            array.forEach(function (v) {
+                if (v.children && v.children.length > 0) {
+                    ergodic(v.children);
+                }
+                string += v.id + ',';
+            });
+            return string;
+        };
+
+    });
+</script>

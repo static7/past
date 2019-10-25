@@ -1,0 +1,129 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>详情</legend>
+</fieldset>
+<form class="layui-form" action="{:Route::buildUrl('banner/renew')}" method="post">
+    <div class="layui-row">
+        <div class="layui-col-xs12 layui-col-md4">
+            <div class="layui-form-item ">
+                <label class="layui-form-label">标题</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" value="{$info.title ?? ''}" lay-verify="required" placeholder="请输入..." class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">位置</label>
+                <div class="layui-input-inline">
+                    <select name="position" lay-verify="required">
+                        <option value=''>请选择</option>
+                        {volist name=":Config::get('app.banner_position',[])" id='vo'}
+                        <option value='{$key}'>{$vo ?? ''}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item ">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="sort" lay-verify="" value="{$info.sort ?? 0}" placeholder="请输入..." class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item  ">
+                <label class="layui-form-label">banner图</label>
+                <div class="layui-input-block">
+                    <button type="button" class="layui-btn" id="picture_upload">图片上传</button>
+                    <button type="button" class="layui-btn layui-btn-warm" id="picture_before">上传</button>
+                    <button type="button" class="layui-btn layui-btn-danger layui-hide" id="picture_delete">删除</button>
+                    <div class="layui-upload-list picture_preview">
+                        <img src="{$info.picture|default=0|get_picture_url}" alt="" id='picture_preview'
+                        {empty name="info.picture"}class='layui-hide'{/empty} height="114" width="185">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">链接</label>
+                <div class="layui-input-block">
+                    <textarea name="url" lay-verify="required" placeholder="支持http(s)://或 框架 Route::buildUrl('Index/index')解析
+                    比如:Index/index或 https://baidu.com" class="layui-textarea">{$info.url ?? ''}</textarea>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">参数</label>
+                <div class="layui-input-block">
+                    <textarea name="parameter" placeholder="请输入参数 格式:a=xx&b=xxx" class="layui-textarea">{$info.parameter ?? ''}</textarea>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <textarea name="remark" placeholder="请输入备注" class="layui-textarea">{$info.remark ?? ''}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="picture" value="{$info.picture ?? 0}">
+            <input type="hidden" name="id" value="{$info.id ?? ''}">
+            <button class="layui-btn" lay-submit="" lay-filter="submit">立即提交</button>
+            <button type="button" class="layui-btn retreat layui-btn-primary">取消</button>
+        </div>
+    </div>
+</form>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Banner/index')}");
+    setChoose('position','{$info.position ?? ""}');
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'layedit', 'element', 'upload', 'table', 'laydate'], function () {
+        //监听提交
+        layui.form.on('submit(submit)', function (data) {
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            })
+            return false;
+        });
+        //普通图片上传
+        var picture_upload_mark = layui.upload.render({
+            elem: '#picture_upload',
+            url: "{:Route::buildUrl('Common/pictureUploadInterface')}",
+            accept: 'images',
+            bindAction: '#picture_before',
+            auto: false,
+            multiple: false,
+            field: "image",
+            choose: function (obj) {
+                obj.preview(function (index, file, result) { /*预读本地文件，不支持ie8*/
+                    layui.$('#picture_preview').attr('src', result).removeClass('layui-hide');
+                    layui.$('#picture_delete').removeClass('layui-hide');
+                });
+            },
+            done: function (res, index, upload) {
+                layui.layer.msg(res.msg);
+                if (res.code === 0){
+                    return false;
+                }
+                layui.$("input[name='picture']").val(res.data.id);
+                layui.$("#picture_preview").attr('src',res.data.url);
+            },
+            error: function (index, upload) {
+                // TODO 请求异常回调
+            }
+        });
+        //查看图片
+        layui.$('#picture_preview').on('click', function () {
+            layui.layer.photos({
+                photos: '.picture_preview'
+            });
+        });
+        //删除图片
+        layui.$('#picture_delete').on('click', function () {
+            layui.$('#picture_preview').attr('src', '').addClass('layui-hide');
+            layui.$(this).addClass('layui-hide');
+        });
+
+
+    });
+</script>
+{/block}

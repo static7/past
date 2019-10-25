@@ -1,0 +1,195 @@
+{extend name="base/base" /}
+{block name="body"}
+<div class="layui-form form-data layui-hide">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">查询</button>
+        </div>
+    </div>
+</div>
+<div class="layui-btn-group">
+    <a class="layui-btn layui-btn-sm layui-btn-normal" href="{:Route::buildUrl('Competence/add')}">新增</a>
+    <button class="layui-btn layui-btn-sm layui-btn-warm ajaxPost" data-field="id" data-value="1"
+            url="{:Route::buildUrl('Competence/setStatus')}">启用
+    </button>
+    <button class="layui-btn layui-btn-sm layui-btn-warm ajaxPost" data-field="id" data-value="0"
+            url="{:Route::buildUrl('Competence/setStatus')}">禁用
+    </button>
+    <button class="layui-btn layui-btn-sm layui-btn-danger ajaxPost" data-field="id" data-value="-1"
+            url="{:Route::buildUrl('Competence/setStatus')}">删除
+    </button>
+    <button class="layui-btn layui-btn-sm layui-btn-danger cleanInvalidCompetence"
+            url="{:Route::buildUrl('Competence/cleanInvalidCompetence')}">清理失效权限
+    </button>
+
+</div>
+<table class="layui-hide" id="group" lay-filter="group"></table>
+{/block}
+{block name="script"}
+<script type="text/html" id="statusTpl">
+    {{#  if(d.status == 1){return "启用"; } else {return "禁用";} }}
+</script>
+<script type="text/html" id="titleTpl">
+    <a href="{:Route::buildUrl('Competence/index')}?pid={{ d.id }}&module={{ d.module }}" class="layui-table-link">{{ d.title
+        ? d.title : '' }}</a>
+</script>
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href="javascript:void(0)" lay-event="add">添加子组别</a>
+    <a class="layui-table-link" href="javascript:void(0)" lay-event="edit">编辑</a>
+    <a class="layui-table-link" href="javascript:void(0)" lay-event="status">
+        {{# if(d.status == 1){ }} 禁用 {{# }else{ }} 启用 {{# } }}</a>
+    <a class="layui-table-link" href="javascript:void(0)" lay-event="clear">取消授权</a>
+</script>
+<script type="text/html" id="competenceTpl">
+    <a class="layui-table-link" href='javascript:void(0)' lay-event="access">访问授权</a>
+    <!--<a class="layui-table-link" href='javascript:void(0)' lay-event="user">成员授权</a>-->
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Competence/index')}");
+    layui.config({
+        base: '/layui/modules/'
+    }).extend({
+        treetable: 'treetable-lay/treetable'
+    });
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'treetable', 'element', 'laydate'], function () {
+        var treetables = function () {
+            layui.treetable.render({
+                elem: '#group',
+                url: "{:Route::buildUrl('Competence/groupInterface')}",
+                page: false,
+                treeColIndex: 2,
+                treeSpid: 0,
+                treeIdName: 'id',
+                treePidName: 'pid',
+                treeDefaultClose: false,
+                treeLinkage: true,
+                response: {
+                    statusName: 'code', //数据状态的字段名称，默认：code
+                    statusCode: 1, //成功的状态码，默认：0
+                    msgName: 'msg', //状态信息的字段名称，默认：msg
+                    countName: 'total', //数据总数的字段名称，默认：count
+                    dataName: 'data', //数据列表的字段名称，默认：data
+                },
+                id: "ids",
+                cols: [[ // 数据列表
+                    {'type': 'checkbox'},
+                    {"field": "id", "title": "用户组ID"},
+                    {"field": "title", "title": "用户组名称"},
+                    {"field": "module", "title": "用户组所属模块"},
+                    {"field": "competence", "title": "授权", "templet": "#competenceTpl"},
+                    {"field": "type", "title": "组类型"},
+                    {"field": "status", "title": "状态", "templet": "#statusTpl"},
+                    {'fixed': 'right', 'title': '操作', 'align': 'center', 'toolbar': '#operating'},
+                ]]
+            });
+        }
+
+        treetables();
+
+        //监听工具条
+        layui.table.on('tool(group)', function (obj) {
+            switch (obj.event) {
+                case "status": //状态
+                    var url = "{:Route::buildUrl('setStatus')}";
+                    var param = {'value': Math.abs(obj.data.status - 1), 'id': obj.data.id};
+                    ajaxSubmit(url, param);
+                    break;
+                case 'edit':  //详情
+                    var url = "{:Route::buildUrl('edit')}";
+                    var param = {'id': obj.data.id, 'module': obj.data.module};
+                    window.location.href = createURL(url, param);
+                    break;
+                case 'add':  //详情
+                    var url = "{:Route::buildUrl('add')}";
+                    var param = {
+                        'id': obj.data.id,
+                        'pid': obj.data.pid,
+                        'module': obj.data.module,
+                        'main_id': obj.data.main_id
+                    };
+                    window.location.href = createURL(url, param);
+                    break;
+                case 'access':
+                    var param = {'group_id': obj.data.id, 'module': obj.data.module};
+                    layui.$.get("{:Route::buildUrl('access')}", param, function (data) {
+                        if (data.code === 0) {
+                            alert_msg(data.msg, data.code);
+                            return false;
+                        }
+                        pop_up = layui.layer.open({
+                            type: 1,
+                            title: "授权详情",
+                            area: ['550px', '700px'],
+                            anim: 2,
+                            content: data.data,
+                            isOutAnim: false
+                        });
+                    });
+                    break;
+                case 'clear':
+                    var url = "{:Route::buildUrl('clearAuth')}";
+                    var param = {'id': obj.data.id, 'module': obj.data.module};
+                    ajaxSubmit(url, param);
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+
+        //批量操作
+        layui.$('.ajaxPost').on('click', function () {
+            var field = layui.$(this).data('field'),
+                value = layui.$(this).data('value'),
+                params = multiples('ids', field),
+                Url = layui.$(this).attr('href') || layui.$(this).attr('url'), json = {};
+            if (!params) {
+                layui.layer.msg('请选择数据!');
+                return false;
+            }
+            json[field] = params;
+            json['value'] = value;
+            ajaxSubmit(Url, json, 'post');
+            return false;
+        });
+
+        //清理失效节点
+        layui.$('.cleanInvalidCompetence').on('click',function () {
+            var url=layui.$(this).attr('href') || layui.$(this).attr('url');
+           ajaxSubmit(url);
+        });
+
+        /**
+         * 通用异步提交
+         * @param url
+         * @param param
+         */
+        function ajaxSubmit(url, param, method) {
+            layui.layer.confirm('确定执行该操作吗?', function (index) {
+                layui.layer.close(index);
+                layui.$.ajax({
+                    url: url,
+                    type: method == 'get' ? 'get' : 'post',
+                    async: true,
+                    data: param,
+                    dataType: 'json',
+                    timeout: 5000,
+                    cache: false,
+                    error: function (xhr) {
+                        console.log(xhr.responseText);
+                        layui.layer.msg(xhr.status + ':' + xhr.statusText);
+                    },
+                    success: function (result, status, xhr) {
+                        layui.layer.msg(result.msg, {offset: 70});
+                        if (result.code >= 1) {
+                            setTimeout(function () {
+                                treetables();
+                            }, 1300);
+                        }
+                    }
+                });
+            });
+        }
+    });
+</script>
+{/block}

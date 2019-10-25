@@ -1,0 +1,173 @@
+{extend name="base/base" /}
+{block name="body"}
+<div class="layui-form form-data">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">标题</label>
+            <div class="layui-input-inline">
+                <input type="text" name="title" lay-verify="" placeholder="请输入" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">位置</label>
+            <div class="layui-input-inline">
+                <select name="position" lay-verify="">
+                    <option value=''>所有</option>
+                    {volist name=":Config::get('app.banner_position',[])" id='vo'}
+                    <option value='{$key}'>{$vo ?? ''}</option>
+                    {/volist}
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">查询</button>
+        </div>
+    </div>
+</div>
+<table class="layui-hide" id="banner" lay-filter="banner"></table>
+{/block}
+{block name="script"}
+<script type="text/html" id="statusTpl">
+    {{#  if(d.status == 1){return "启用"; } else {return "禁用";} }}
+</script>
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href="javascript:void(0);" lay-event="edit">编辑</a>
+    <a class="layui-table-link" href="javascript:void(0);" lay-event="status">
+        {{# if(d.status == 1){ }} 禁用 {{# }else{ }} 启用 {{# } }}</a>
+
+</script>
+<script type="text/html" id="pictureTpl">
+    <a class="layui-table-link" href="javascript:void(0);" lay-event="picture">查看图片</a>
+</script>
+<script type="text/html" id="toolbarTpl">
+    <div class="layui-btn-group">
+        <a class="layui-btn layui-btn-sm layui-btn-normal" href="{:Route::buildUrl('Banner/edit')}">新增</a>
+        <a class="layui-btn layui-btn-sm layui-btn-warm" href="javascript:void(0);" data-field="user_id" data-value="1"
+           lay-event="toolbar">启用</a>
+        <a class="layui-btn layui-btn-sm layui-btn-warm" href="javascript:void(0);" data-field="user_id" data-value="0"
+           lay-event="toolbar">禁用</a>
+        <a class="layui-btn layui-btn-sm layui-btn-danger" href="javascript:void(0);" data-field="user_id"
+           data-value="-1" lay-event="toolbar">删除</a>
+    </div>
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Banner/index')}");
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'layedit', 'element', 'table', 'upload', 'laydate'], function () {
+        table_reload = layui.table.render({
+            elem: '#banner',
+            url: "{:Route::buildUrl('Banner/bannerInterface')}",
+            page: true,
+            method: 'post',
+            cellMinWidth: 150,
+            where: {},
+            limit: 10,
+            id: "ids",
+            toolbar: '#toolbarTpl',
+            title: '',
+            defaultToolbar:false,
+            totalRow: false,
+            loading: false,
+            request: {
+                pageName: 'page',  //页码的参数名称，默认：page
+                limitName: 'limit'  //每页数据量的参数名，默认：limit
+            },
+            response: {
+                statusName: 'code', //数据状态的字段名称，默认：code
+                statusCode: 0, //成功的状态码，默认：0
+                msgName: 'msg', //状态信息的字段名称，默认：msg
+                countName: 'total', //数据总数的字段名称，默认：count
+                dataName: 'data', //数据列表的字段名称，默认：data
+            },
+            cols: [[ // 数据列表
+                {'type': 'checkbox', 'totalRowText': '合计'},
+                {"field": "id", "title": "ID", "templet": ""},
+                {"field": "title", "title": "标题", "templet": ""},
+                {"field": "picture", "title": "图片Url", "templet": "#pictureTpl"},
+                {"field": "position", "title": "位置", "templet": function (d) {
+                        var array=JSON.parse('{:json_encode(Config::get("app.banner_position",[]))}');
+                        return array[d.position] || '';
+                    }},
+                {"field": "sort", "title": "排序", "templet": ""},
+                {"field": "status", "title": "状态", "templet": function (d) {
+                        switch (d.status) {
+                            case -1:
+                                return '删除';
+                                break;
+                            case 0:
+                                return '禁用';
+                                break;
+                            case 1:
+                                return '正常';
+                                break;
+                            default:
+                                return '未知';
+                        }
+                    }},
+                {"field": "create_time", "title": "创建时间", "templet": ""},
+                {"field": "update_time", "title": "更新时间", "templet": ""},
+                {'fixed': 'right', 'title': '操作', 'align': 'center', 'toolbar': '#operating'},
+            ]]
+        });
+
+        //搜索
+        layui.form.on('submit(search)', function (data) {
+            table_reload.reload({
+                where: data.field,
+                page: {
+                    pageNo: 1
+                }
+            });
+            return false;
+        });
+
+        //监听工具栏
+        layui.table.on('toolbar(banner)', function (obj) {
+            switch (obj.event) {
+                case 'toolbar':
+                    var params = multiples(obj.config.id, 'id'),
+                        value = layui.$(this).data('value');
+                    if (!params) {
+                        layui.layer.msg('请选择数据!');
+                        return false;
+                    }
+                    ajaxSubmit("{:Route::buildUrl('setStatus')}", {'id': params, 'value': value}, 'post');
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        //监听工具条
+        layui.table.on('tool(banner)', function (obj) {
+            switch (obj.event) {
+                case "status": //状态
+                    var url = "{:Route::buildUrl('Banner/setStatus')}";
+                    var param = {'value': Math.abs(obj.data.status - 1), 'id': obj.data.id};
+                    ajaxSubmit(url, param);
+                    break;
+                case 'edit':  //详情
+                    var url = "{:Route::buildUrl('Banner/edit')}";
+                    var param = {'id': obj.data.id};
+                    window.location.href = createURL(url, param);
+                    break;
+                case 'picture':
+                    layer.open({
+                        type: 1,
+                        title: false,
+                        area: ['80%','60%'],
+                        shadeClose: false,
+                        closeBtn:1,
+                        content: '<img src="'+obj.data.picture_url+'" alt="" width="100%" height="100%">'
+                    });
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+
+
+    });
+</script>
+{/block}

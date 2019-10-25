@@ -1,0 +1,80 @@
+{extend name="base/base" /}
+{block name="body"}
+<form class="layui-form" action="{:Route::buildUrl('renew')}" method="post">
+    <div class="layui-row">
+        <div class="layui-col-xs12 layui-col-md4">
+            <div class="layui-form-item ">
+                <label class="layui-form-label">用户组名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="required" placeholder="请输入..." class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span style="color: red;">所属模块</span></label>
+                <div class="layui-input-inline">
+                    {php}$module=Config::get('app.module');{/php}
+                    <select name="module" lay-verify="required">
+                        <option value="">请选择</option>
+                        {notempty name='module'}
+                        {volist name="module" id="vo"}
+                        <option value="{$vo}">{$vo}</option>
+                        {/volist}
+                        {/notempty}
+                    </select>
+                </div>
+                <div class="layui-form-mid layui-word-aux"><span style="color: red;">所属应用模块</span></div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">上级权限组</label>
+                <div class="layui-input-inline">
+                    <select name="pid" lay-verify="required" lay-filter="mainId">
+                        <option value="0">顶级</option>
+                        {notempty name='groupTree'}
+                        {volist name="groupTree" id="vo"}
+                        <option value="{$vo.id}" data-main="{$vo.main_id}">&nbsp;&nbsp;{$vo.title_show|raw}</option>
+                        {/volist}
+                        {/notempty}
+                    </select>
+                </div>
+                <div class="layui-form-mid layui-word-aux">所属的上级菜单</div>
+            </div>
+            <div class="layui-form-item ">
+                <label class="layui-form-label">描述信息</label>
+                <div class="layui-input-block">
+                    <textarea name="description" lay-verify="" placeholder="请输入内容" rows="4"
+                              class="layui-textarea"></textarea>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="id" value="">
+            <input type="hidden" name="main_id" value="{$mainId ?? 0}">
+            <button class="layui-btn" lay-submit="" lay-filter="submit">立即提交</button>
+            <button type="button" class="layui-btn layui-btn-primary retreat">取消</button>
+        </div>
+    </div>
+</form>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('competence/index')}");
+    setChoose("pid", "{$pid ?? 0}");
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'layedit', 'element', 'upload', 'table', 'laydate'], function () {
+        //监听提交
+        layui.form.on('submit(submit)', function (data) {
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            })
+            return false;
+        });
+
+        layui.form.on('select(mainId)', function(data){
+            var main=layui.$(data.elem).find("option:selected").data('main');
+            layui.$("input[name='main_id']").val(main);
+        });
+    });
+</script>
+{/block}

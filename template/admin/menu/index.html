@@ -1,0 +1,137 @@
+{extend name="base/base" /}
+{block name="body"}
+<div class="layui-form form-data layui-hide">
+    <div class="layui-form-item">
+        <div class="layui-inline ">
+            <label class="layui-form-label w-auto">会员昵称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="nickname" lay-verify="" placeholder="请输入..." class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">状态</label>
+            <div class="layui-input-inline">
+                <select name="status" lay-verify="">
+                    <option value=''>所有</option>
+                    <option value='1'>正常</option>
+                    <option value='0'>禁用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">查询</button>
+        </div>
+    </div>
+</div>
+<div class="layui-btn-group">
+    <a class="layui-btn layui-btn-sm layui-btn-normal" href="{:Route::buildUrl('add',['pid'=>$pid ?? 0,'module'=>$module ?? '','main_id'=>$mainId])}">新增</a>
+    <a class="layui-btn layui-btn-sm layui-btn-danger ajax-post" href="{:Route::buildUrl('Menu/setStatus')}" data-field="id" data-value="-1">删除</a>
+    {present name='father'}
+    <a class="layui-btn layui-btn-sm layui-btn-normal" href="{:Route::buildUrl('menu/index',['pid'=>$father['pid'] ?? 0])}">返回{$father.title ?? ''}</a>
+    {/present}
+</div>
+
+<table class="layui-hide" id="menu" lay-filter="menu"></table>
+{/block}
+{block name="script"}
+<script type="text/html" id="statusTpl">
+    {{#  if(d.status == 1){ return "正常"; } else {return "禁用";} }}
+</script>
+<script type="text/html" id="isDev">
+    <a class="layui-table-link" href='#' lay-event="isDev">
+        {{#  if(d.is_dev == 1){ }}是{{#  }else{ }}否{{# } }}
+    </a>
+</script>
+<script type="text/html" id="hide">
+    <a class="layui-table-link" href='#' lay-event="hide">
+        {{#  if(d.hide == 1){ }}是{{#  }else{ }}否{{# } }}
+    </a>
+</script>
+<script type="text/html" id="title">
+    <a class=" layui-table-link" href="{:Route::buildUrl('menu/index')}?pid={{d.id}}&module={{ d.module }}">{{ d.title }}</a>
+</script>
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href='#' lay-event="edit">编辑</a>
+    <a class="layui-table-link" href='#' lay-event="status">
+        {{#  if(d.status == 1){ }} 禁用 {{# }else{ }} 启用 {{# } }}</a>
+    <a class="layui-table-link" href='#' lay-event="delete">删除</a>
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Menu/index')}");
+    layui.use(['jquery', 'form', 'table', 'layer'], function () {
+        table_reload = layui.table.render({
+            elem: '#menu',
+            url: "{:Route::buildUrl('Menu/menuInterface')}",
+            where: {'pid': "{$pid ?? 0}"},
+            page: true,
+            method: 'post',
+            limit: 10,
+            id: "ids",
+            request: {
+                pageName: 'page',  //页码的参数名称，默认：page
+                limitName: 'limit'  //每页数据量的参数名，默认：limit
+            },
+            response: {
+                statusName: 'code', //数据状态的字段名称，默认：code
+                statusCode: 0, //成功的状态码，默认：0
+                msgName: 'msg', //状态信息的字段名称，默认：msg
+                countName: 'total', //数据总数的字段名称，默认：count
+                dataName: 'data', //数据列表的字段名称，默认：data
+            },
+            cols: [[ //table column
+                {checkbox: true},
+                {field: 'id', title: 'ID'},
+                {field: 'title', title: '名称', templet: '#title'},
+                {field: 'module', title: '所属模块'},
+                {field: 'father', title: '上级菜单', templet: function () {
+                        return "{$father.title ?? '无'}";
+                    }},
+                {field: 'group', title: '分组'},
+                {field: 'url', title: 'URL'},
+                {field: 'sort', title: '排序', edit: 'text'},
+                {field: 'is_dev', title: '仅开发者模式显示', templet: '#isDev'},
+                {field: 'hide', title: '隐藏',templet: '#hide'},
+                {field: 'status', title: '状态', templet: '#statusTpl'},
+                {fixed: 'right', title: '操作', align: 'center', toolbar: '#operating'},
+            ]]
+        });
+
+        layui.table.on('tool(menu)', function (obj) {
+            switch (obj.event) {
+                case "status":
+                    ajaxSubmit("{:Route::buildUrl('Menu/setStatus')}", {'value': Math.abs(obj.data.status - 1), 'id': obj.data.id});
+                    break;
+                case 'delete':
+                    ajaxSubmit("{:Route::buildUrl('Menu/setStatus')}", {'value': -1, 'id': obj.data.id});
+                    break;
+                case 'edit':
+                    window.location.href = createURL("{:Route::buildUrl('edit')}", {'id': obj.data.id,'module':obj.data.module});
+                    break;
+                case 'isDev':
+                    ajaxSubmit("{:Route::buildUrl('Menu/toogle')}", {'id': obj.data.id, 'value': Math.abs(obj.data.is_dev - 1), 'field':'is_dev'});
+                    break;
+                case 'hide':
+                    ajaxSubmit("{:Route::buildUrl('Menu/toogle')}", {'id': obj.data.id, 'value': Math.abs(obj.data.hide - 1), 'field':'hide'});
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+
+
+
+        //排序
+        layui.table.on('edit(menu)', function (obj) {
+            var sort = obj.value;
+            if (isNaN(sort)) {
+                alert_msg('排序必须为一个数字', 0);
+                return false;
+            }
+            ajaxSubmit("{:Route::buildUrl('Menu/currentSort')}", {'id': obj.data.id, 'sort': sort});
+        });
+
+    })
+</script>
+
+{/block}

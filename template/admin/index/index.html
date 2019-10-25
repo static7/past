@@ -1,0 +1,39 @@
+{extend name="base/base" /}
+{block name="css"}
+<style>
+    .layui-body {left: 0px;}
+    #footer-left-0{left: 0px;}
+</style>
+{/block}
+{block name="body"}
+<div class="layui-row">
+    <div class="layui-col-xs6 layui-col-md4">
+        <div class=" pl-10">
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>系统信息</legend>
+                <div class="layui-field-box ">
+                    <p><strong>服务器操作系统:</strong><span class="float-right">{$Think.const.PHP_OS}</span></p>
+                    <hr>
+                    <p><strong>框架内核版本:</strong><span class="float-right">{:App::version()}</span></p>
+                    <hr>
+                    <p><strong>PHP版本:</strong><span class="float-right">{:PHP_VERSION}</span></p>
+                    <hr>
+                    <p><strong>运行环境:</strong><span class="float-right">{:Request::server('SERVER_SOFTWARE')}</span></p>
+                    <hr>
+                    <p><strong>MYSQL版本:</strong><span class="float-right">{:Db::query("select version() as version;")[0]["version"]}</span></p>
+                    <hr>
+                    <p><strong>上传限制:</strong><span class="float-right">{:ini_get('upload_max_filesize')}</span></p>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="left"}{/block}
+{block name="script"}
+<script type="text/javascript">
+    layui.use(['jquery', 'form', 'laytpl', 'table','layer', 'element', 'upload', 'laydate'], function () {
+
+    });
+</script>
+{/block}

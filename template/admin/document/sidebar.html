@@ -1,0 +1,46 @@
+<div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll highlight">
+        <ul class="layui-nav layui-nav-tree layui-inline" lay-filter="left_url">
+            <li class="layui-nav-item layui-nav-itemed">
+                <a href="javascript:void(0);">个人中心</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="{:Route::buildUrl('Document/mydocument')}">我的文档</a></dd>
+                    <dd><a href="{:Route::buildUrl('Document/examine')}">待审核</a></dd>
+                    <dd><a href="{:Route::buildUrl('Document/draftBox')}">草稿箱</a></dd>
+                </dl>
+            </li>
+            {notempty name="child"}
+            {volist name="child" id="vo"}
+            <li class="layui-nav-item {$vo.active ?? ''}">
+                {gt name="vo.allow_publish" value='0'}
+                    <a class="{$vo.expansion ?? ''}" href="{:Route::buildUrl('Document/index', ['category_id' => $vo['id']])}">{$vo.title ?? ''}</a>
+                {else /}
+                    <a class="{$vo.expansion ?? ''}" href="javascript:void(0);">{$vo.title}</a>
+                {/gt}
+                {notempty name="vo._child"}
+                <ul class="layui-nav-child ">
+                    {volist name="vo._child" id="v"}
+                        <li class="{$vo.active ?? ''} ">
+                            {gt name="v.allow_publish" value='1'}
+                            <a class="{$v.active ?? ''}" href="{:Route::buildUrl('Document/index', ['category_id' => $v['id']])}">{$v.title ?? ''}</a>
+                            {else /}
+                            <a class="{$v.active ?? ''}" href="javascript:void(0);">{$v.title ?? ''}</a>
+                            {/gt}
+                            {notempty name="v._child"}
+                            <ul class="layui-nav-child">
+                            {volist name="v._child" id="child"}
+                                <li ><a class="{$child.active ?? ''}" href="{:Route::buildUrl('Document/index', ['category_id' => $child['id']])}">{$child.title ?? ''}</a></li>
+                            {/volist}
+                            </ul>
+                            {/notempty}
+                        </li>
+                    {/volist}
+                </ul>
+                {/notempty}
+            </li>
+            {/volist}
+            {/notempty}
+            <li class="layui-nav-item"><a href="{:Route::buildUrl('Document/recycle')}" >回收站</a></li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,176 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title mt-15">
+    <legend>{present name="info"}编辑{else /}新增{/present}菜单</legend>
+</fieldset>
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-md4">
+        <form class="layui-form" action="{:Route::buildUrl('Menu/renew')}" method="post">
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span>控制器</span></label>
+                <div class="layui-input-inline">
+                    <select class="controller" lay-verify="required" lay-filter="controller" lay-search>
+                        <option value="">请选择</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span>方法</span></label>
+                <div class="layui-input-block">
+                    <select  class="method"  lay-verify="required" lay-filter="method" lay-search>
+                        <option value="">请选择</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">标题</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="required" placeholder="用于后台显示的配置标题" value="{$info.title ?? ''}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">链接</label>
+                <div class="layui-input-block">
+                    <input type="text" name="url" lay-verify="required" value="{$info.url|default=''}" class="layui-input"
+                           placeholder="函数解析的URL或者外链，支持带http://的URL或U函数参数格式">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-inline">
+                    <input type="number" name="sort" placeholder="用于分组显示的顺序" lay-verify="required|number"
+                           class="layui-input" value="{$info.sort ?? 0}">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">上级菜单</label>
+                <div class="layui-input-inline">
+                    <select name="pid" lay-verify="required" lay-search lay-filter="mainId">
+                    <option value="0">顶级</option>
+                    {notempty name='menus'}
+                        {volist name="menus" id="menu"}
+                        <option value="{$menu.id}" data-main="{$menu.main_id}">&nbsp;&nbsp;{$menu.title_show|raw}</option>
+                        {/volist}
+                    {/notempty}
+                    </select>
+                </div>
+                <div class="layui-form-mid layui-word-aux">所属的上级菜单</div>
+            </div>
+
+
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">分组</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="group" lay-verify="title"  value="{$info.group ?? ''}"
+                           class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">用于左侧分组二级菜单</div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">是否隐藏</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="hide" value="1" title="是">
+                    <input type="radio" name="hide" value="0" title="否" checked>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">仅开发者模式可见</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="is_dev" value="1" title="是">
+                    <input type="radio" name="is_dev" value="0" title="否" checked>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">说明</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="菜单详细说明" name="tip" rows="4" class="layui-textarea">{$info.tip ?? ''}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <input type="hidden" value="{$main_id ?? 0}" name="main_id">
+                    <button class="layui-btn" lay-submit="" lay-filter="menu">立即提交</button>
+                    <button class="layui-btn layui-btn-primary retreat">取消</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Menu/index')}");
+    setChoose("pid", "{$pid ?? 0}");
+    //监听提交
+    layui.use(['jquery', 'form', 'layer'], function () {
+        layui.form.on('submit(menu)', function (data) {
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            })
+            return false;
+        });
+
+        layui.form.on('select(mainId)', function(data){
+            var main=layui.$(data.elem).find("option:selected").data('main');
+            layui.$("input[name='main_id']").val(main);
+        });
+
+        //模块获取控制器
+        layui.$(function () {
+            var selects = "<option value=''>请选择</option>";
+            layui.$.get("{:Route::buildUrl('Menu/getControllerFileName')}", function (result) {
+                if (result.code === 0) {
+                    layui.layer.msg(result.msg);
+                } else {
+                    layui.$.each(result.data, function (key, info) {
+                        selects += "<option value='" + info + "'>" + info + "</option>"
+                    });
+                }
+                /*layui.$('input[name="url"]').val('');
+                layui.$('input[name="title"]').val('');*/
+                // layui.$('.method').html(selects);
+                layui.$('.controller').html(selects);
+                layui.form.render();
+            });
+        })
+
+        //控制器获取方法
+        layui.form.on('select(controller)', function (data) {
+            if (!data.value) {
+                return false;
+            }
+            var module = layui.$(".module").val(),
+                selects = "<option value=''>请选择</option>";
+            layui.$.post("{:Route::buildUrl('Menu/getFunctionName')}", {'controller': data.value, 'module': module}, function (result) {
+                if (result.code === 0) {
+                    layui.$('input[name="url"]').val('');
+                    layui.$('input[name="title"]').val('');
+                    layui.layer.msg(result.msg);
+                } else {
+                    layui.$.each(result.data, function (key, info) {
+                        selects += "<option data-annotate='" + info.annotate + "' value='" + info.name + "'>" + info.name + "(" + info.annotate + ")" + "</option>"
+                    });
+                }
+                layui.$('.method').html(selects);
+                layui.form.render();
+            });
+        });
+
+        //控制器获取方法
+        layui.form.on('select(method)', function (data) {
+            var controller = layui.$(".controller").val() || '',
+                annotate = layui.$(data.elem).find("option:selected").data('annotate') || '';
+            layui.$('input[name="url"]').val(controller ? controller + '/' + data.value : '');
+            layui.$('input[name="title"]').val(annotate ? annotate : '');
+        });
+    })
+</script>
+{/block}

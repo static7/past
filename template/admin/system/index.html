@@ -1,0 +1,12 @@
+{extend name="base/base" /}
+{block name="body"}
+
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('')}");
+    layui.use(['jquery', 'form'], function () {
+
+    });
+</script>
+{/block}

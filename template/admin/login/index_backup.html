@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta author="static7">
+    <title>登录 - static7 - 后台管理系统</title>
+    <link rel="stylesheet" type="text/css" href="__CSS__/register-login.css">
+</head>
+{php}
+use think\facade\{Route,Config};
+{/php}
+<body>
+<div id="box"></div>
+<div class="cent-box">
+    <div class="cent-box-header">
+        <h1 class="main-title">Static7</h1>
+        <h2 class="sub-title">后台管理系统</h2>
+    </div>
+
+    <div class="cont-main clearfix">
+        <form action="{:Route::buildUrl('Login/login')}" method="post">
+            <div class="login form">
+                <div class="group">
+                    <div class="group-ipt email">
+                        <input type="text" name="username" id="email" class="ipt" value="{$remember ?? ''}" placeholder="输入您的用户名或邮箱或手机号">
+                    </div>
+                    <div class="group-ipt password">
+                        <input type="password" name="password" id="password" class="ipt" placeholder="输入您的登录密码">
+                    </div>
+                    <input type="hidden" name="ticket">
+                    <input type="hidden" name="randstr">
+                </div>
+            </div>
+
+            <div class="button">
+                <button type="submit" class="login-btn register-btn" id="button" lay-submit="" lay-filter="submit">登录</button>
+            </div>
+
+            <div class="remember clearfix">
+                <label class="remember-me">
+                    <input type="checkbox" value="1"  name="remember" class="remember-mecheck" {notempty name="remember"}checked{/notempty}>记住我
+                </label>
+                <label class="forgot-password"><a class="forget" href="javascript:void(0);">忘记密码？</a></label>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="footer">
+    <p>© 2017 <a href="https://www.calm7.com">static7 personal blog </a>
+</div>
+{notempty name=":Config::get('app.app_status')"}
+<script type="text/javascript" src="__LAYUI__/layui.js" charset="utf-8"></script>
+{else /}
+<script type="text/javascript" src="https://source.calm7.com/static/layui.js" charset="utf-8"></script>
+{/notempty}
+<script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+<script src='__JS__/particles.js' type="text/javascript"></script>
+<script src='__JS__/background.js' type="text/javascript"></script>
+<script type="text/javascript" url-src="__STATIC__/ueditor/ueditor.all.min.js"></script>
+<script type="text/javascript" url-src="__STATIC__/ueditor/ueditor.config.js"></script>
+<script type="text/javascript">
+    layui.use(['jquery', 'layer','form'], function () {
+        var appid="{:Config::get('app.captcha.appid')}",appkey,loading;
+        //延迟加载js
+/*        layui.$('script[url-src]').each(function () {
+            var src = layui.$(this);
+            src.attr('src', src.attr('url-src'));
+        });*/
+
+        //记住我
+        layui.$("#remember-me").on('click', function () {
+            var remember = layui.$("#remember-me").is(":checked");
+            remember ? layui.$(".zt").show() : layui.$(".zt").hide();
+        });
+
+        //忘记密码
+        layui.$(".forget").on('click', function () {
+            layui.layer.msg('请联系管理员重置密码!',{offset: 70, shift: 0});
+        });
+
+        //验证
+        var captcha = new TencentCaptcha(appid, function(result) {
+            if (result.ret===2){
+                console.log('用户关闭验证窗');
+                return false;
+            }
+            layui.$("input[name='ticket']").val(result.ticket);
+            layui.$("input[name='randstr']").val(result.randstr);
+            ajaxSubmit();
+        });
+
+        //提交
+        layui.form.on('submit(submit)', function () {
+            var username=layui.$("input[name='username']").val(),
+                password=layui.$("input[name='password']").val();
+            if (!username || !password){
+                tips('帐号或密码不能为空哦',0);
+                return false;
+            }
+            var captchaStatus ='{:Config::get("tencent.captcha.status","0")}';
+            if (captchaStatus == '1'){
+                captcha.show();
+            }else {
+                ajaxSubmit();
+            }
+            return false;
+        });
+
+        //统一提交
+        function ajaxSubmit(){
+            var form = layui.$("form");
+            layui.$.post(form.attr("action"), form.serialize(), function (data){
+                tips(data.msg,data.code);
+                if (data.code==0){
+                    layui.$("#button").prop('disabled', false);
+                    return false;
+                }
+                setTimeout(function () {
+                    window.location.href = data.url;
+                }, 1300);
+            });
+        }
+
+        //提示
+        function tips(text,icon) {
+            text = text || '提交成功，系统未返回信息';
+            icon = icon || 0;
+            layui.layer.msg(text, {
+                icon: icon,
+                offset: 70,
+                shift: 0
+            });
+        }
+
+        //效果
+        layui.$(document).ajaxSend(function () {
+            loading = layui.layer.load(2);
+            // layui.$("#button").prop('disabled', true);
+        }).ajaxStop(function () {
+            layui.layer.close(loading);
+        });
+    });
+</script>
+</body>
+</html>

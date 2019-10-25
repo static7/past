@@ -1,0 +1,163 @@
+{extend name="base/base" /}
+{block name="body"}
+<div class="layui-form form-data">
+    <div class="layui-form-item">
+        <div class="layui-inline ">
+            <label class="layui-form-label w-auto">帐号</label>
+            <div class="layui-input-inline">
+                <input type="text" name="username" lay-verify="" placeholder="请输入..." class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">状态</label>
+            <div class="layui-input-inline">
+                <select name="status" lay-verify="">
+                    <option value=''>所有</option>
+                    <option value='0'>禁用</option>
+                    <option value='1'>启用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline ">
+            <label class="layui-form-label w-auto">最后登录时间</label>
+            <div class="layui-input-inline" style="width: 300px;">
+                <input type="text" name="last_login_time" data-timeType="datetime" data-range="~" placeholder="请输入时间范围" class="dateTime layui-input">
+            </div>
+        </div>
+        <div class="layui-inline ">
+            <label class="layui-form-label w-auto">注册时间</label>
+            <div class="layui-input-inline" style="width: 300px;">
+                <input type="text" name="reg_time" data-timeType="datetime" data-range="~" placeholder="请输入时间范围" class="dateTime layui-input">
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">查询</button>
+        </div>
+    </div>
+</div>
+<div class="layui-btn-group">
+    <a class="layui-btn layui-btn-sm layui-btn-normal layui-hide" href="{:Route::buildUrl('')}">新增</a>
+    <button class="layui-btn layui-btn-sm layui-btn-warm ajax-post" data-field="id" data-value="1" url="{:Route::buildUrl('setStatus')}">启用</button>
+    <button class="layui-btn layui-btn-sm layui-btn-warm ajax-post" data-field="id" data-value='0' url="{:Route::buildUrl('setStatus')}">禁用</button>
+    <button class="layui-btn layui-btn-sm layui-btn-danger ajax-post" data-field="id" data-value="-1" url="{:Route::buildUrl('setStatus')}">删除</button>
+</div>
+<table class="layui-hide" id="user_center" lay-filter="user_center"></table>
+{/block}
+{block name="script"}
+<script type="text/html" id="statusTpl">
+    {{#  if(d.status == 1){return "启用"; } else {return "禁用";} }}
+</script>
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href="#" lay-event="auth">授权</a>
+    <a class="layui-table-link" href="#" lay-event="status">
+        {{# if(d.status === 1){ }} 禁用 {{# }else{ }} 启用 {{# } }}</a>
+    <!--<a class="layui-table-link" href="#" lay-event="other">其他</a>-->
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('UserCenter/index')}");
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'layedit', 'element', 'table', 'upload', 'laydate'], function () {
+        table_reload = layui.table.render({
+            elem: '#user_center',
+            url: "{:Route::buildUrl('UserCenter/UserCenterInterface')}",
+            page: true,
+            method: 'post',
+            limit: 10,
+            id: "ids",
+            // cellMinWidth:150,
+            request: {
+                pageName: 'page',  //页码的参数名称，默认：page
+                limitName: 'limit'  //每页数据量的参数名，默认：limit
+            },
+            response: {
+                statusName: 'code', //数据状态的字段名称，默认：code
+                statusCode: 0, //成功的状态码，默认：0
+                msgName: 'msg', //状态信息的字段名称，默认：msg
+                countName: 'total', //数据总数的字段名称，默认：count
+                dataName: 'data', //数据列表的字段名称，默认：data
+            },
+            loading:false,
+            cols: [[ // 数据列表
+                {'type':'checkbox', 'fixed': 'left'},
+                {"field": "id", "title": "ID"},
+                {"field": "username", "title": "帐号"},
+                {"field": "email", "title": "邮箱"},
+                {"field": "mobile", "title": "用户手机"},
+                {"field": "last_login_time", "title": "最后登录时间"},
+                {"field": "last_login_ip", "title": "最后登录IP"},
+                {"field": "status", "title": "状态",'templet':function (d) {
+                    return d.status === 1 ? "启用" : "禁用";
+                }},
+                {"field": "email_status", "title": "邮箱状态",'templet':function (d) {
+                    return d.email_status ===1 ? '激活':'未激活';
+                }},
+                {"field": "mobile_status", "title": "手机状态",'templet':function (d) {
+                    return d.mobile_status ===1 ? '激活':'未激活';
+                }},
+                {"field": "reg_time", "title": "注册时间"},
+                {"field": "reg_ip", "title": "注册ip"},
+                {"field": "update_time", "title": "更新时间"},
+                {'fixed': 'right', 'title': '操作', 'align': 'center', 'toolbar': '#operating'},
+            ]]
+        });
+
+        //搜索
+        layui.form.on('submit(search)', function (data) {
+            table_reload.reload({
+                where: data.field,
+                page: {
+                    pageNo: 1
+                }
+            });
+            return false;
+        });
+
+        //监听工具条
+        layui.table.on('tool(user_center)', function (obj) {
+            switch (obj.event) {
+                case "status": //状态
+                    var url = "{:Route::buildUrl('setStatus')}";
+                    console.log(Math.abs(obj.data.status - 1));
+                    var param = {'value':Math.abs(obj.data.status - 1), 'id': obj.data.id};
+                    ajaxSubmit(url, param);
+                    break;
+                case 'auth':  //授权
+                    var url = "{:Route::buildUrl('Competence/authUserToGroup')}";
+                    var param = {'user_id':obj.data.id};
+                    layui.$.get(url, param, function (data) {
+                        if (data.code===0){
+                            layui.layer.msg(data.msg,{offset: '80px'});
+                            return false;
+                        }
+                        pop_up = layui.layer.open({
+                            type: 1,
+                            title: "授权组别",
+                            area: ['400px', '500px'],
+                            offset: 'rb',
+                            anim: 2,
+                            content: data.data,
+                            isOutAnim: false
+                        });
+                    });
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+
+        //日期
+        layui.$('.dateTime').each(function () {
+            var datetime=layui.$(this).data('timeType'),
+                range=layui.$(this).data('range');
+            layui.laydate.render({
+                elem: this,
+                trigger: 'click',
+                type: datetime ? datetime :'datetime',
+                range: range ? range : true,
+            });
+        });
+
+    });
+</script>
+{/block}

@@ -1,0 +1,129 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title mt-15">
+    <legend>{present name="info"}编辑{else /}新增{/present}配置</legend>
+</fieldset>
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-md4">
+        <form class="layui-form" action="{:Route::buildUrl('renew')}" method="post">
+            <div class="layui-form-item">
+                <label class="layui-form-label">配置标识</label>
+                <div class="layui-input-block ">
+                    <input type="text" name="name" lay-verify="required" value="{$info.name ?? ''}"
+                           class="layui-input">
+                    <div class="layui-form-mid layui-word-aux">用于Config类函数调用，只能使用英文且不能重复</div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">标题</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="required" lay-verify="title" value="{$info.title ?? ''}"
+                           class="layui-input">
+                    <div class="layui-form-mid layui-word-aux">用于后台显示的配置标题</div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">配置区域</label>
+                <div class="layui-input-inline">
+                    {php}$config_area=Config::get('app.config_area',[]);{/php}
+                    {notempty name='config_area'}
+                    <select name="area">
+                        {volist name="config_area" id="vo"}
+                        <option value="{$key}">{$vo}</option>
+                        {/volist}
+                    </select>
+                    {/notempty}
+                </div>
+                <div class="layui-form-mid layui-word-aux">用于区分模块配置 {$info.area}</div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">优先级</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="sort" lay-verify="required|number" value="{$info.sort ?? 0}"
+                           class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">用于分组显示的顺序</div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">配置类型</label>
+                <div class="layui-input-inline">
+                    {php}$config_type_list=Config::get('app.config_type_list');{/php}
+                    {notempty name='config_type_list'}
+                    <select name="type">
+                        {volist name="config_type_list" id="t"}
+                        <option value="{$key}">{$t}</option>
+                        {/volist}
+                    </select>
+                    {/notempty}
+                </div>
+                <div class="layui-form-mid layui-word-aux">系统会根据不同类型解析配置值 {$info.type}</div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">配置分组</label>
+                <div class="layui-input-inline">
+                    {php}$config_group_list=Config::get('app.config_group_list');{/php}
+                    {notempty name='config_group_list'}
+                    <select name="group">
+                        <option value="0">不分组</option>
+                        {volist name="config_group_list" id="g"}
+                        <option value="{$key}">{$g}</option>
+                        {/volist}
+                        {/notempty}
+                    </select>
+                </div>
+                <div class="layui-form-mid layui-word-aux">不分组则不显示在系统设置中</div>
+            </div>
+
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">配置值</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="配置值" name="value" rows="5"
+                              class="layui-textarea ">{$info.value ?? ''}</textarea>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">配置项</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="配置项" name="extra" rows="4"
+                              class="layui-textarea ">{$info.extra ?? ''}</textarea>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">说明</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="说明" name="remark" rows="4"
+                              class="layui-textarea ">{$info.remark ?? ''}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <input type="hidden" name="id" value="{$info.id ?? ''}">
+                    <button class="layui-btn" lay-submit="" lay-filter="deploy">立即提交</button>
+                    <button class="layui-btn layui-btn-primary retreat">取消</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    '{present name="info"}'
+    setChoose("type", "{$info->getData('type') ?? 0}");
+    setChoose("group", "{$info->getData('group') ?? 0}");
+    setChoose("area", "{$info->getData('area') ?? 0}");
+    '{/present}'
+    UrlHighlight("{:Route::buildUrl('Config/index')}");
+    //监听提交
+    layui.use(['jquery', 'form', 'layer'], function () {
+        layui.form.on('submit(deploy)', function (data) {
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            })
+            return false;
+        });
+    });
+</script>
+{/block}

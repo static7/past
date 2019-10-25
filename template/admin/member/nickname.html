@@ -1,0 +1,42 @@
+{php}use think\facade\{Route,Config,App,Request,Cache,Cookie,Session,Db}; {/php}
+<div class="layui-col-xs6 layui-col-md10 m15">
+    <form class="layui-form" action="{:Route::buildUrl('Member/submitNickname')}" method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">输入密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" lay-verify="required" placeholder="请输入密码" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">昵称</label>
+            <div class="layui-input-block">
+                <input type="text" name="nickname" lay-verify="required|nickname" placeholder="新昵称"
+                       value="{$nickname ?? ''}" class="pass layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="update_nickname">立即提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    layui.use(['jquery', 'form', 'layer'], function () {
+        layui.form.verify({
+            nickname: function (value) {
+                if (!new RegExp("^[a-zA-Z0-9_\u4e00-\u9fa5\\s·]+$").test(value)) {
+                    return '用户名不能有特殊字符';
+                }
+            }
+        });
+
+        //监听提交
+        layui.form.on('submit(update_nickname)', function (form) {
+            layui.$.post(form.form.action, form.field, function (data) {
+                status_load(data, form.elem);
+            });
+            return false;
+        });
+    });
+</script>

@@ -1,0 +1,47 @@
+{php}use think\facade\{Route,Config,App,Request,Cache,Cookie,Session,Db}; {/php}
+<form class="layui-form" method="post" action="{:Route::buildUrl('Competence/addUserToMultipleGroups')}">
+    <div class="layui-form-item" pane="">
+        <label class="layui-form-label">组别:</label>
+        <div class="layui-input-block">
+            {present name="auth_group"}
+            {volist name="auth_group" id="vo"}
+            <input class="auth_group" type="checkbox" name="group[{$key}][group_id]" lay-skin="primary" title="{$vo.title ?? ''}" value="{$vo.id ?? ''}">
+            <br>
+            <input type="hidden" name="group[{$key}][main_id]" value="{$vo.main_id ?? ''}">
+            {/volist}
+            {/present}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="user_id" value="{$user_id ?? 0}"/>
+            <button class="layui-btn" type="submit" lay-submit="group" lay-filter="group">立即提交</button>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    layui.use(['form','jquery','layer'], function(){
+        var group = [{$user_group ?? ''}];
+        layui.$('.auth_group').each(function () {
+            if (layui.$.inArray(parseInt(this.value, 10), group) > -1) {
+                layui.$(this).prop('checked', true);
+            };
+        });
+        layui.form.render();
+        //监听提交
+        layui.form.on('submit(group)', function(form){
+            layui.$.post(form.form.action,form.field, function (data) {
+                if (data.code === 0) {
+                    alert_msg(data.msg, 0)
+                    return false;
+                };
+                alert_msg(data.msg, 1);
+                setTimeout(function () {
+                    layui.layer.close(pop_up);
+                    table_reload.reload();
+                }, 1500);
+            });
+            return false;
+        });
+    });
+</script>

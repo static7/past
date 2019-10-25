@@ -1,0 +1,281 @@
+{extend name="base/base" /}
+{block name="body"}
+
+<blockquote class="layui-elem-quote layui-text">文字地址</blockquote>
+<div class="layui-row">
+    <div class="layui-col-xs6">
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend>请求</legend>
+        </fieldset>
+        <form class="layui-form" action="{:Route::buildUrl('Develop/simulationTransfer')}" method="post">
+            <div class="layui-form-item">
+                <label class="layui-form-label">接口地址</label>
+                <div class="layui-input-block">
+                    <input type="text" name="url" lay-verify="required" placeholder="http(s)://www.xxx.com"
+                           class="layui-input" >
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">调用方法</label>
+                <div class="layui-input-inline">
+                    <select name="method" lay-filter="method" lay-verify="required">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="HEAD">HEAD</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="CONNECT">CONNECT</option>
+                        <option value="OPTIONS">OPTIONS</option>
+                        <option value="TRACE">TRACE</option>
+                        <option value="PATCH">PATCH</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item header">
+                <div class="layui-inline header-index-0">
+                    <label class="layui-form-label">Header</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="header[0][name]" lay-verify="required" placeholder="Header"
+                               value="Content-Type"
+                               class="layui-input">
+                    </div>
+                    <div class="layui-input-inline" style="width: 350px;">
+                        <input type="text" name="header[0][value]" lay-verify="required" placeholder="值"
+                               value="application/x-www-form-urlencoded" class="layui-input">
+                    </div>
+                    <button type="button" class="layui-btn layui-btn-danger " onclick="deleteHeader('0')">删除</button>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="button" class="layui-btn layui-btn-normal add-header">添加Header</button>
+                    <button type="button" class="layui-btn layui-btn-normal add-batch-header">批量添加Header</button>
+                    <button type="button" style="display: none;"
+                            class=" layui-btn layui-btn-danger delete-batch-header">删除批量Header
+                    </button>
+                </div>
+            </div>
+
+            <div class="layui-form-item body"></div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="button" class="layui-btn layui-btn-normal add-body">添加请求参数</button>
+                    <button type="button" class="layui-btn layui-btn-normal add-batch-body">添加其他格式的参数</button>
+                    <button type="button" style="display: none;"
+                            class=" layui-btn layui-btn-danger delete-batch-body">删除批量请求参数
+                    </button>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">cookie</label>
+                <div class="layui-input-block" style="margin-bottom: 5px;">
+                    <textarea placeholder="可选,多个 cookie 用分号分隔，分号后带一个空格(例如:fruit=apple; colour=red)。"
+                              name="cookie" class="layui-textarea"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit="" lay-filter="submit">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="layui-col-xs6">
+        <div style="margin: 0px 0 0 10px;">
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>响应</legend>
+            </fieldset>
+            <div class="layui-tab layui-tab-brief" lay-filter="response">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">响应body</li>
+                    <li>响应header</li>
+                    <li>请求header</li>
+                    <li>传输信息</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <pre id="response_body"></pre>
+                    </div>
+                    <div class="layui-tab-item">
+                        <pre id="response_header"></pre>
+                    </div>
+                    <div class="layui-tab-item">
+                        <pre id="request_header"></pre>
+                    </div>
+                    <div class="layui-tab-item">
+                        <pre id="original_response"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Develop/interface')}");
+    var key = 1, body = 0;
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'code', 'element', 'table', 'upload', 'laydate'], function () {
+
+        //单个添加header
+        layui.$('.add-header').on('click', function () {
+            if (layui.$('.header .remove-batch-header').length > 0) {
+                layui.$('.header').html('');
+                layui.$('.delete-batch-header').hide();
+            }
+            layui.laytpl(headerTpl.innerHTML).render({key: key}, function (html) {
+                layui.$('.header').append(html);
+                layui.form.render();
+                key++;
+            });
+        });
+        //批量添加header
+        layui.$('.add-batch-header').on('click', function () {
+            if (layui.$('.header .layui-inline').length > 0) {
+                layui.$('.header').html('');
+            }
+            if (layui.$('.header .remove-batch-header').length > 0) {
+                return false;
+            }
+            layui.laytpl(addBatchHeaderTpl.innerHTML).render({key: key}, function (html) {
+                layui.$('.header').append(html);
+                layui.form.render();
+                layui.$('.delete-batch-header').show();
+            });
+        });
+        //删除批量批量header
+        layui.$('.delete-batch-header').on('click', function () {
+            layui.$('.remove-batch-header').remove();
+            layui.$('.delete-batch-header').hide();
+        });
+
+        /*=======================================================*/
+
+        //单个添加body
+        layui.$('.add-body').on('click', function () {
+            if (layui.$('.body .remove-batch-body').length > 0) {
+                layui.$('.body').html('')
+                layui.$('.delete-batch-body').hide();
+            }
+            layui.laytpl(bodyTpl.innerHTML).render({body: body}, function (html) {
+                layui.$('.body').append(html);
+                layui.form.render();
+                body++;
+            });
+        });
+
+        //批量添加body
+        layui.$('.add-batch-body').on('click', function () {
+            if (layui.$('.body .layui-inline').length > 0) {
+                layui.$('.body').html('');
+            }
+            if (layui.$('.body .remove-batch-body').length > 0) {
+                return false;
+            }
+            layui.laytpl(addBatchBodyTpl.innerHTML).render({body: body}, function (html) {
+                layui.$('.body').append(html);
+                layui.form.render();
+                layui.$('.delete-batch-body').show();
+            });
+        });
+
+        //删除批量批量header
+        layui.$('.delete-batch-body').on('click', function () {
+            layui.$('.remove-batch-body').remove();
+            layui.$('.delete-batch-body').hide();
+        });
+
+        //提交
+        layui.form.on('submit(submit)', function (form) {
+            layui.$.post(form.form.action, form.field, function (data) {
+                if (data.code > 0) {
+                    alert_msg(data.msg, data.msg);
+                    layui.$(form.elem).prop('disabled', false);
+                    return false;
+                }
+                var responseBody=JSON.parse(data.data.response_body);
+                layui.$('#response_body').html(JSON.stringify(responseBody,null,4));
+                layui.$('#response_header').html(data.data.response_header);
+                layui.$('#request_header').html(data.data.request_header);
+                delete data.data.response_body;
+                delete data.data.response_header;
+                delete data.data.request_header;
+                layui.$('#original_response').html(JSON.stringify(data.data,null,4));
+                layui.code({
+                    title:'响应',
+                    elem: 'pre', //默认值为.layui-code
+                    encode: true, //是否转义html标签。默认不开启
+                    // skin:'notepad',
+                    height:'550px',
+                    about:false,
+                });
+            })
+            return false;
+        });
+    });
+
+    //删除header
+    function deleteHeader(key) {
+        layui.use(['jquery'], function () {
+            layui.$('.header-index-' + key).remove();
+        });
+    }
+
+    //删除body
+    function deleteBody(body) {
+        layui.use(['jquery'], function () {
+            layui.$('.body-index-' + body).remove();
+        });
+    }
+</script>
+<script type="text/html" id="headerTpl">
+    <div class="layui-inline header-index-{{ key }}">
+        <label class="layui-form-label">Header</label>
+        <div class="layui-input-inline">
+            <input type="text" name="header[{{ key }}][name]" lay-verify="required" placeholder="Header"
+                   class="layui-input">
+        </div>
+        <div class="layui-input-inline" style="width: 350px;">
+            <input type="text" name="header[{{ key }}][value]" lay-verify="required" placeholder="值" value=""
+                   class="layui-input">
+        </div>
+        <button type="button" class="layui-btn layui-btn-danger " onclick="deleteHeader('{{ key }}')">删除</button>
+    </div>
+</script>
+
+<script type="text/html" id="addBatchHeaderTpl">
+    <div class="remove-batch-header">
+        <label class="layui-form-label">批量添加header</label>
+        <div class="layui-input-block" style="margin-bottom: 5px;">
+            <textarea placeholder="例如:&#10;Accept: text/plain, text/html &#10;Accept-Language: en,zh &#10;一行一个"
+                      name="header" lay-verify="required" class="layui-textarea">Content-Type:application/x-www-form-urlencoded</textarea>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="bodyTpl">
+    <div class="layui-inline body-index-{{ body }}">
+        <label class="layui-form-label">请求参数</label>
+        <div class="layui-input-inline">
+            <input type="text" name="body[{{ body }}][name]" placeholder="请求名称" class="layui-input">
+        </div>
+        <div class="layui-input-inline" style="width: 350px;">
+            <input type="text" name="body[{{ body }}][value]" placeholder="参数值" value="" class="layui-input">
+        </div>
+        <button type="button" class="layui-btn layui-btn-danger " onclick="deleteBody('{{ body }}')">删除</button>
+    </div>
+</script>
+<script type="text/html" id="addBatchBodyTpl">
+    <div class="remove-batch-body">
+        <label class="layui-form-label">批量添加请求参数</label>
+        <div class="layui-input-block" style="margin-bottom: 5px;">
+            <textarea placeholder="json格式的参数"
+                      name="body" class="layui-textarea"></textarea>
+        </div>
+    </div>
+</script>
+{/block}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {php}use think\facade\{Route,Config,App,Request,Cache,Cookie,Session,Db}; {/php}
+    <meta charset="utf-8">
+    <title>{$metaTitle ?? 'Static7'}-基础管理系统</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="__LAYUI__/css/layui.css">
+    <link rel="stylesheet" href="__CSS__/main.css">
+    {block name="css"}{/block}
+    <!-- 让IE8/9支持媒体查询，从而兼容栅格 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <a href="/"><div class="layui-logo" style="font-size: 30px;color:#FFB800; ">Static7</div></a>
+        {notempty name="mainMenu"}
+        <ul class="layui-nav layui-layout-left" lay-filter="menu_url">
+            {volist name='mainMenu' id='vo'}
+            <li class="layui-nav-item {$vo.class ?? ''}">
+                <a href="{:Route::buildUrl($vo['url'] ?? '#')}">{$vo.title ?? ''}</a>
+            </li>
+            {/volist}
+        </ul>
+        {/notempty}
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item"><a href="{:Route::buildUrl('Index/clearRuntime')}">清除缓存</a></li>
+            <li class="layui-nav-item">
+                <a href="javascript:;"><img src="{:get_avatar()}" class="layui-nav-img">{:get_nickname()}</a>
+                <dl class="layui-nav-child">
+                    <dd><a class="personal" href="{:Route::buildUrl('Member/nicknameModify')}">修改昵称</a></dd>
+                    <dd><a class="personal" href="{:Route::buildUrl('Member/avatarModify')}">更新头像</a></dd>
+                    <dd><a class="personal" href="{:Route::buildUrl('UserCenter/passwordModify')}">修改密码</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="{:Route::buildUrl('Login/logout')}">退出</a></li>
+        </ul>
+    </div>
+    {block name="left"}
+    <div class="layui-side  layui-bg-black">
+        <div class="layui-side-scroll">
+            {notempty name="childMenu"}
+            <ul class="layui-nav layui-nav-tree highlight" lay-filter="menu_url">
+                {volist name='childMenu' id='child'}
+                <li class="layui-nav-item layui-nav-itemed {$child.class ?? ''}">
+                    <a href="javascript:void(0);">{$key}</a>
+                    <dl class="layui-nav-child">
+                        {volist name='child' id='v'}
+                        <dd><a href="{:Route::buildUrl($v['url']?? '#')}">
+                            {$v.title ?? ''}
+                        </a></dd>
+                        {/volist}
+                    </dl>
+                </li>
+                {/volist}
+            </ul>
+            {/notempty}
+        </div>
+    </div>
+    {/block}
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;">
+            {block name="body"}{/block}
+        </div>
+    </div>
+
+    {block name="footer"}
+    <div class="layui-footer" id="footer-left-0">
+        <!-- 底部固定区域 -->
+        <div class="layui-right">framework version: <span style="color: #01AAED;">{:App::version()}</span>&nbsp;&nbsp;</div>
+        <div class="layui-right">system version: <span style="color: #01AAED;">{:Config::get('app.system_version','1.0')}</span>&nbsp;&nbsp;</div>
+        Copyright <strong>static7</strong> &copy; 2018
+    </div>
+    {/block}
+</div>
+{notempty name=":Config::get('app.app_status')"}
+<script type="text/javascript" src="__LAYUI__/layui.js" charset="utf-8"></script>
+{else /}
+<script type="text/javascript" src="https://source.calm7.com/static/layui.js" charset="utf-8"></script>
+{/notempty}
+<script type="text/javascript" src="__STATIC__/common/common.js"></script>
+<script type="text/javascript">
+    layui.use(['element', 'jquery', 'layer'], function () {
+        layui.element.on('nav(menu_url)', function (elem) {
+            if (layui.$(elem).attr('href') != 'javascript:void(0);') {
+                var leftUrl = layui.layer.load(2);
+                setTimeout(function () {
+                    layui.layer.close(leftUrl);
+                }, 5000);
+            }
+        });
+
+        //个人
+        layui.$('.personal').on('click', function () {
+            layui.$.get(this.href, function (data) {
+                if (data.code === 0) {
+                    alert_msg(data.msg);
+                    return false;
+                }
+                pop_up = layui.layer.open({
+                    type: 1,
+                    title: data.msg,
+                    area: '550px',
+                    content: data.data
+                });
+            });
+            return false;
+        });
+    });
+</script>
+{block name="script"}{/block}
+{block name="hide"}{/block}
+</body>
+</html>

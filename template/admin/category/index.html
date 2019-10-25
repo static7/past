@@ -1,0 +1,166 @@
+{extend name="base/base" /}
+{block name="body"}
+<div class="layui-btn-group">
+    <a class="layui-btn a_load layui-btn-sm layui-btn-normal" href="{:Route::buildUrl('Category/add')}">增加</a>
+    <button class="layui-btn layui-btn-sm openAll">全部展开</button>
+    <button class="layui-btn layui-btn-sm closeAll">全部收起</button>
+</div>
+<div class="layui-form">
+    <table class="layui-table static7-tree" id="tree-table" lay-filter="tree"></table>
+</div>
+{/block}
+{block name="css"}
+<style>
+    .static7-tree input {height: 29px;width: 100px;margin:0 auto;text-align: center;padding-left:0px;}
+</style>
+{/block}
+{block name="script"}
+<script type="text/html" id="operateTpl">
+    {{# if(d.level < 2){ }}<a class="underline" href="javascript:void(0);" lay-filter="add">添加</a>{{# } }}
+    <a class="underline" href="javascript:void(0);" lay-filter="edit">编辑</a>
+    <a class="underline" href="javascript:void(0);" lay-filter="status">{{d.status == 1 ? '禁用':'启用'}}</a>
+    <a class="underline" href="javascript:void(0);" lay-filter="move">移动</a>
+
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Category/index')}");
+    layui.config({
+        base: '/layui/modules/'
+    }).extend({
+        treetable: 'treeTable'
+    });
+    layui.use(['jquery', 'treeTable', 'layer', 'form','laytpl'], function () {
+        var trees = layui.treeTable.render({
+            elem: '#tree-table',
+            url: "{:Route::buildUrl('Category/treeInterface')}",
+            icon_key: 'title',
+            is_checkbox: true,
+            is_cache: true,
+            primary_key: 'id',
+            parent_key: 'pid',
+            hide_class: 'layui-hide',
+            end: function (e) {
+                layui.form.render();
+            },
+            cols: [
+                {
+                    key: 'id',
+                    title: 'ID',
+                    align: 'center',
+                },
+                {
+                    key: 'pid',
+                    title: '父级ID',
+                    align: 'center',
+                },
+                {
+                    key: 'title',
+                    title: '名称',
+                },
+                {
+                    key: 'name',
+                    title: '标识',
+                    align: 'center',
+                },
+                {
+                    key: 'allow_publish',
+                    title: '发布',
+                    align: 'center',
+                    template: function (item) {
+                        return item.allow_publish ? "是" : "否";
+                    }
+                },
+                {
+                    key: 'level',
+                    title: '等级',
+                    align: 'center',
+                    template: function (item) {
+                        var text;
+                        switch (parseInt(item.level)) {
+                            case 1:
+                                text='二级';
+                                break;
+                            case 2:
+                                text='三级';
+                                break;
+                            default:
+                                text='一级';
+                                break;
+                        }
+                        return text;
+                    }
+                },
+                {
+                    key: 'sort',
+                    title: '排序',
+                    align: 'center',
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    template: function (item) {
+                        return layui.laytpl(operateTpl.innerHTML).render(item);
+                    }
+                }
+            ]
+        });
+
+        //全部展开
+        layui.$('.openAll').on('click',function () {
+            layui.treeTable.openAll(trees);
+        });
+        //全部收紧
+        layui.$('.closeAll').on('click',function () {
+            layui.treeTable.closeAll(trees);
+        });
+
+        // 添加
+        layui.treeTable.on('tree(add)',function(data){
+            window.location.href="{:Route::buildUrl('Category/add')}?pid="+data.item.id;
+        });
+
+        // 编辑
+        layui.treeTable.on('tree(edit)',function(data){
+            window.location.href="{:Route::buildUrl('Category/edit')}?id="+data.item.id;
+        });
+
+        //更改状态
+        layui.treeTable.on('tree(status)',function(data){
+            var param={
+                'id':data.item.id,
+                'value':Math.abs(data.item.status - 1)
+            }
+            layui.layer.confirm('确定执行该操作吗?', function (index) {
+                layui.layer.close(index);
+                layui.$.post("{:Route::buildUrl('Category/setStatus')}",param, function (result) {
+                    alert_msg(result.msg,result.code);
+                    if (result.code === 0) {
+                        return false;
+                    }
+                    setTimeout(function () {
+                        layui.treeTable.render(trees);
+                    }, 1300);
+                });
+            });
+        });
+
+        //移动分类
+        layui.treeTable.on('tree(move)',function(data){
+            layui.$.post("{:Route::buildUrl('Category/move')}",{'id':data.item.id}, function (result) {
+                if (result.code === 0) {
+                    return alert_msg(result.msg);
+                }
+                pop_up = layui.layer.open({
+                    type: 1,
+                    title: "移动分类",
+                    area: ['420px', '400px'],
+                    content: result
+                });
+            });
+            return false;
+        });
+
+    });
+</script>
+
+{/block}

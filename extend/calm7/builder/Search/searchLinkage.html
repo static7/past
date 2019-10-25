@@ -1,0 +1,18 @@
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">区域</label>
+            <div class="layui-input-inline">
+                <select name="province" class="province_s" lay-filter="linkage_s" data-next='city_s' data-level="2">
+                    <option value=''>请选择</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <select name="city" class="city_s" lay-filter="linkage_s" data-next='area_s' data-level="3">
+                    <option value=''>请选择</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <select name="area" class="area_s " lay-filter="linkage_s" data-next='' data-level="4">
+                    <option value=''>请选择</option>
+                </select>
+            </div>
+        </div>

@@ -1,0 +1,302 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>简易模板生成</legend>
+</fieldset>
+<form class="layui-form" action="{:Route::buildUrl('formTemplate')}" method="post">
+    <div class="layui-row">
+        <div class="layui-col-md10">
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">基础模板</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="请输入基础模板代码" name="base_temp" rows="20" class="layui-textarea">{$temp ?? ''}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md10">
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">保存路径</label>
+                <div class="layui-input-block">
+                    <input type="text" name="temp_path" lay-verify="required" value=""
+                           placeholder="请输入文件保存路径 {:App::getRootPath()}template/" class="layui-input">
+                </div>
+            </div>
+        </div>
+        <div class="input-append"></div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">input类型</label>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <select id="inputType">
+                        <option value="0">文本框</option>
+                        <option value="1">密码框</option>
+                        <option value="2">复选框</option>
+                        <option value="3">单选框</option>
+                        <option value="4">隐藏域</option>
+                        <option value="5">文本区域</option>
+                        <option value="6">图片上传(单个)</option>
+                        <option value="7">文件上传(单个)</option>
+                        <option value="8">编辑器</option>
+                        <option value="9">下拉框</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <button type="button" class="layui-btn add-input layui-btn-normal">添加输入框</button>
+            </div>
+        </div>
+
+        <div class="layui-form-item" style="margin-top: 10px;">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="formGenerate">立即提交</button>
+                <button type="button" class="layui-btn layui-btn-primary">取消</button>
+            </div>
+        </div>
+    </div>
+</form>
+{/block}
+{block name="script"}
+<script type="text/html" id="inputTpl">
+    {{# if (d.type==0 ){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">文本框</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="文本框的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <select name="data[{{ d.key }}][verify]">
+                    <option value="">自定义验证</option>
+                    <option value="required">必填项</option>
+                    <option value="url">网址</option>
+                    <option value="date">日期</option>
+                    <option value="email">邮箱</option>
+                    <option value="number">数字</option>
+                    <option value="phone">手机号</option>
+                    <option value="identity">身份证</option>
+                </select>
+            </div>
+        <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+        </div>
+    </div>
+    {{# }else if (d.type==1){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">密码框</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="密码框的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" value="密码" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+        <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+        <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==2){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">复选框</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="复选框的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][number]" lay-verify="required|number" placeholder="复选框个数"
+                       class="layui-input">
+            </div>
+            <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==3){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">单选框</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="单选框的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][number]" lay-verify="required|number" placeholder="单选框个数"
+                       class="layui-input">
+            </div>
+            <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==4){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">隐藏域</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="隐藏域的name名称"
+                       class="layui-input">
+            </div>
+            <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==5){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">文本区域</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="文本区域的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" value="" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][height]" lay-verify="required" placeholder="文本区域高度"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-input-inline">
+                <select name="data[{{ d.key }}][verify]">
+                    <option value="">自定义验证</option>
+                    <option value="required">必填项</option>
+                    <option value="url">网址</option>
+                    <option value="date">日期</option>
+                    <option value="email">邮箱</option>
+                    <option value="number">数字</option>
+                    <option value="phone">手机号</option>
+                    <option value="identity">身份证</option>
+                </select>
+            </div>
+            <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==6){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">图片上传</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="图片上传的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" value="" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][button]" lay-verify="required" value="图片上传" placeholder="按钮名称" class="layui-input">
+            </div>
+            <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==7){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">文件上传</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="文件上传的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" value="" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][button]" lay-verify="required" value="文件上传"
+                       placeholder="按钮名称"
+                       class="layui-input">
+            </div>
+            <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==8){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">编辑器</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="编辑器的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+            <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==9){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">下拉框</label>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][name]" lay-verify="required" placeholder="下拉框的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][label]" lay-verify="required" placeholder="标签名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="data[{{ d.key }}][number]" lay-verify="required" placeholder="下拉框选择个数"
+                       class="layui-input">
+            </div>
+            <input type="hidden" name="data[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# } }}
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('')}");
+    var key = 0;
+    layui.use(['jquery', 'form', 'laytpl','layer'], function () {
+        layui.$('.add-input').on('click', function () {
+            var type = layui.$('#inputType').val();
+            layui.laytpl(inputTpl.innerHTML).render({'key': key, 'type': type}, function (html) {
+                layui.$('.input-append').append(html);
+                layui.form.render();
+                key++;
+            });
+        });
+        layui.form.on('submit(formGenerate)', function(form){
+            layui.$.post(form.form.action, form.field, function (data) {
+                if (data.code == 1) {
+                    alert_msg(data.msg, 1);
+                    layui.$(form.elem).prop('disabled', false);
+                    layui.$('input[name="temp_path"]').val('');
+                } else {
+                    alert_msg(data.msg, 0);
+                    layui.$(form.elem).prop('disabled', false);
+                }
+            })
+            return false;
+        });
+    });
+
+    function removes(key) {
+        layui.use(['jquery'], function () {
+           layui.$('.temp_'+ key).remove();
+        });
+    }
+</script>
+{/block}

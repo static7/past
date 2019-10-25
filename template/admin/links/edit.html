@@ -1,0 +1,65 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title mt-15">
+    <legend>{present name="info"}编辑{else /}新增{/present}配置</legend>
+</fieldset>
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-md4">
+        <form class="layui-form" method="post" action="{:Route::buildUrl('renew')}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">站点名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title" lay-verify="required" value="{$info.title ?? ''}" placeholder="站点名称" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">链接地址</label>
+                <div class="layui-input-block">
+                    <input type="text" name="link" lay-verify="required|url" placeholder="用于跳转的链接https://或者http://"
+                           value="{$info.link ?? ''}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">站点描述</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="友情链接站点描述" name="summary" rows="5" class="layui-textarea ">{$info.summary ?? ''}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">站长联系方式</label>
+                <div class="layui-input-block">
+                    <input type="text" name="contact" placeholder="电话号码或邮箱" class="layui-input" value="{$info.contact ?? ''}">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">优先级</label>
+                <div class="layui-input-inline">
+                    <input type="number" name="sort" placeholder="显示顺序" value="{$info.sort ?? 0}" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <input type="hidden" name="id" value="{$info.id ?? ''}">
+                    <button class="layui-btn" lay-submit lay-filter="links">立即提交</button>
+                    <button class="layui-btn layui-btn-primary retreat">返回</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Links/index')}");
+    layui.use(['jquery', 'form','layer'], function () {
+        layui.form.on('submit(links)', function (data) {
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            })
+            return false;
+        });
+    });
+</script>
+{/block}

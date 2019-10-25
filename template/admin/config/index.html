@@ -1,0 +1,163 @@
+{extend name="base/base" /}
+{block name="body"}
+<div class="layui-form form-data">
+    <div class="layui-form-item">
+        <div class="layui-inline ">
+            <label class="layui-form-label w-auto">配置名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="name" lay-verify="" placeholder="请输入..." class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">配置类型</label>
+            <div class="layui-input-inline">
+                {php}$config_type_list=Config::get('app.config_type_list',[]);{/php}
+                <select name="type">
+                    <option value="">请选择</option>
+                    {notempty name='config_type_list'}
+                        {volist name="config_type_list" id="t"}
+                            <option value="{$key}">{$t}</option>
+                        {/volist}
+                    {/notempty}
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">配置分组</label>
+            <div class="layui-input-inline">
+                {php}$config_group_list=Config::get('app.config_group_list');{/php}
+                <select name="group">
+                    <option value="">请选择</option>
+                    {notempty name='config_group_list'}
+                        <option value="0">不分组</option>
+                        {volist name="config_group_list" id="g"}
+                            <option value="{$key}">{$g}</option>
+                        {/volist}
+                    {/notempty}
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">作用区域</label>
+            <div class="layui-input-inline">
+                {php}$config_area=Config::get('app.config_area',[]);{/php}
+                <select name="area">
+                <option value="">请选择</option>
+                    {notempty name='config_area'}
+                        {volist name="config_area" id="vo"}
+                            <option value="{$key}">{$vo}</option>
+                        {/volist}
+                    {/notempty}
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">状态</label>
+            <div class="layui-input-inline">
+                <select name="status" lay-verify="">
+                    <option value=''>所有</option>
+                    <option value='1'>启用</option>
+                    <option value='0'>禁用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">查询</button>
+        </div>
+    </div>
+</div>
+<div class="layui-btn-group">
+    <a class="layui-btn layui-btn-sm layui-btn-normal" href="{:Route::buildUrl('edit')}">新增</a>
+    <button class="layui-btn layui-btn-sm layui-btn-warm ajax-post" data-field="id" data-value="1"
+            url="{:Route::buildUrl('setStatus')}">启用
+    </button>
+    <button class="layui-btn layui-btn-sm layui-btn-warm ajax-post" data-field="id" data-value="0"
+            url="{:Route::buildUrl('setStatus')}">禁用
+    </button>
+    <button class="layui-btn layui-btn-sm layui-btn-danger ajax-post" data-field="id" data-value="-1"
+            url="{:Route::buildUrl('setStatus')}">删除
+    </button>
+</div>
+<table class="layui-hide" id="config" lay-filter="config"></table>
+{/block}
+{block name="script"}
+<script type="text/html" id="statusTpl">
+    {{#  if(d.status == 1){return "启用"; } else {return "禁用";} }}
+</script>
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href="#" lay-event="edit">编辑</a>
+    <a class="layui-table-link" href="#" lay-event="status">
+        {{# if(d.status == 1){ }} 禁用 {{# }else{ }} 启用 {{# } }}</a>
+    <!--<a class="layui-table-link" href="#" lay-event="other">其他</a>-->
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Config/index')}");
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'layedit', 'element', 'table', 'upload', 'laydate'], function () {
+        table_reload = layui.table.render({
+            elem: '#config',
+            url: "{:Route::buildUrl('Config/ConfigInterface')}",
+            page: true,
+            method: 'post',
+            cellMinWidth: 150,
+            where: {},
+            limit: 10,
+            id: "ids",
+            request: {
+                pageName: 'page',  //页码的参数名称，默认：page
+                limitName: 'limit'  //每页数据量的参数名，默认：limit
+            },
+            response: {
+                statusName: 'code', //数据状态的字段名称，默认：code
+                statusCode: 0, //成功的状态码，默认：0
+                msgName: 'msg', //状态信息的字段名称，默认：msg
+                countName: 'total', //数据总数的字段名称，默认：count
+                dataName: 'data', //数据列表的字段名称，默认：data
+            },
+            cols: [[ // 数据列表
+                {checkbox: true},
+                {"field": "id", "title": "ID"},
+                {"field": "name", "title": "配置名称"},
+                {"field": "type", "title": "配置类型"},
+                {"field": "title", "title": "配置说明"},
+                {"field": "group", "title": "配置分组"},
+                {"field": "sort", "title": "排序"},
+                {"field": "area", "title": "作用区域"},
+                {"field": "status", "title": "状态",'templet':"#statusTpl"},
+                {'fixed': 'right', 'title': '操作', 'align': 'center', 'toolbar': '#operating'},
+            ]]
+        });
+
+        //搜索
+        layui.form.on('submit(search)', function (data) {
+            table_reload.reload({
+                where: data.field,
+                page: {
+                    pageNo: 1
+                }
+            });
+            return false;
+        });
+
+        //监听工具条
+        layui.table.on('tool(config)', function (obj) {
+            switch (obj.event) {
+                case "status": //状态
+                    var url = "{:Route::buildUrl('setStatus')}";
+                    var param = {'value': Math.abs(obj.data.status - 1), 'id': obj.data.id};
+                    ajaxSubmit(url, param);
+                    break;
+                case 'edit':  //详情
+                    var url = "{:Route::buildUrl('edit')}";
+                    var param = {'id': obj.data.id};
+                    window.location.href = createURL(url, param);
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+
+
+    });
+</script>
+{/block}

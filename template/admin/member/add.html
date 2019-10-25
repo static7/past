@@ -1,0 +1,80 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>添加账号</legend>
+</fieldset>
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-md4">
+        <form class="layui-form" method="post" action="{:Route::buildUrl('renew')}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="username" lay-verify="required|username" placeholder="用户名会作为默认的昵称" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">密码</label>
+                <div class="layui-input-block">
+                    <input type="password" name="password" lay-verify="required|length" placeholder="用户密码不能少于6位"
+                           class="layui-input pass">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">确认密码</label>
+                <div class="layui-input-block">
+                    <input type="password" name="repassword" lay-verify="required|repassword" placeholder="确认密码"
+                           class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">邮箱</label>
+                <div class="layui-input-block">
+                    <input type="text" name="email" placeholder="用户邮箱，用于找回密码等安全操作" lay-verify="required|email"
+                           class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="add_user">立即提交</button>
+                    <button class="layui-btn layui-btn-primary retreat">返回</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Member/index')}");
+    layui.use(['jquery', 'form', 'layer'], function () {
+        layui.form.verify({
+            username: function (value) {
+                if (!new RegExp("^[a-zA-Z0-9\u4e00-\u9fa5\\s·]+$").test(value)) {
+                    return '用户名不能有特殊字符';
+                }
+            },
+            length: function (value) {
+                if (value.length < 6) {
+                    return "密码必须6个字符以上";
+                }
+            },
+            repassword: function (value) {
+                if (value !== layui.$('.pass').val()) {
+                    return '两次密码不一致';
+                }
+            }
+        });
+
+        //监听提交
+        layui.form.on('submit(add_user)', function (form) {
+            layui.$.post(form.form.action, form.field, function (data) {
+                status_load(data, form.elem);
+            });
+            return false;
+        });
+    });
+</script>
+{/block}

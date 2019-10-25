@@ -1,0 +1,34 @@
+{extend name="admin/base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>详情</legend>
+</fieldset>
+<form class="layui-form" action="" method="post">
+    <div class="layui-row">
+        <div class="layui-col-xs12 layui-col-md12">
+            {@html}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="submit">立即提交</button>
+            <button type="button" class="layui-btn retreat layui-btn-primary">取消</button>
+        </div>
+    </div>
+</form>
+{/block}
+{block name="script"}
+{@script}
+    UrlHighlight("{:Route::buildUrl('')}");
+    layui.use(['jquery', 'form', 'laytpl','layer','layedit','element','upload','table','laydate'], function () {
+        //监听提交
+        layui.form.on('submit(submit)', function(data){
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            })
+            return false;
+        });
+       {@javascript}
+    });
+{/@script}
+{/block}

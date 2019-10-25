@@ -1,0 +1,155 @@
+{extend name="base/base" /}
+{block name="body"}
+<div class="layui-form form-data">
+    <div class="layui-form-item">
+        <div class="layui-inline ">
+            <label class="layui-form-label w-auto">会员昵称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="nickname" lay-verify="" placeholder="请输入..." class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline ">
+            <label class="layui-form-label w-auto">最后登录时间</label>
+            <div class="layui-input-inline" style="width: 300px;">
+                <input type="text" name="last_login_time" data-timeType="datetime" data-range="~" placeholder="请输入时间范围" class="dateTime layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">状态</label>
+            <div class="layui-input-inline">
+                <select name="status" lay-verify="">
+                    <option value=''>所有</option>
+                    <option value='1'>启用</option>
+                    <option value='0'>禁用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">查询</button>
+        </div>
+    </div>
+</div>
+<table class="layui-hide" id="member" lay-filter="member"></table>
+{/block}
+{block name="script"}
+<script type="text/html" id="statusTpl">
+    {{#  if(d.status == 1){return "启用"; } else {return "禁用";} }}
+</script>
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href="javascript:void(0);" lay-event="detail">详细</a>
+    <a class="layui-table-link" href="javascript:void(0);" lay-event="status">{{# if(d.status == 1){ }}禁用{{# }else{ }}启用{{# } }}</a>
+    <!--<a class="layui-table-link" href="javascript:void(0);" lay-event="other">其他</a>-->
+</script>
+<script type="text/html" id="toolbarTpl">
+    <div class="layui-btn-group">
+        <a class="layui-btn layui-btn-sm layui-btn-normal" href="{:Route::buildUrl('Member/add')}">新增</a>
+        <a class="layui-btn layui-btn-sm layui-btn-warm"  href="javascript:void(0);" data-field="user_id" data-value="1" lay-event="toolbar">启用</a>
+        <a class="layui-btn layui-btn-sm layui-btn-warm" href="javascript:void(0);" data-field="user_id" data-value="0" lay-event="toolbar">禁用</a>
+        <a class="layui-btn layui-btn-sm layui-btn-danger" href="javascript:void(0);" data-field="user_id" data-value="-1" lay-event="toolbar">删除</a>
+    </div>
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Member/index')}");
+    layui.use(['jquery', 'form', 'laytpl', 'layer', 'table', 'element', 'laydate','upload', 'laydate'], function () {
+        table_reload = layui.table.render({
+            elem: '#member',
+            url: "{:Route::buildUrl('Member/MemberInterface')}",
+            page: true,
+            method: 'post',
+            limit: 10,
+            title:'',
+            toolbar:'#toolbarTpl',
+            totalRow:false,
+            loading:false,
+            id: "ids",
+            request: {
+                pageName: 'page',  //页码的参数名称，默认：page
+                limitName: 'limit'  //每页数据量的参数名，默认：limit
+            },
+            response: {
+                statusName: 'code', //数据状态的字段名称，默认：code
+                statusCode: 0, //成功的状态码，默认：0
+                msgName: 'msg', //状态信息的字段名称，默认：msg
+                countName: 'total', //数据总数的字段名称，默认：count
+                dataName: 'data', //数据列表的字段名称，默认：data
+            },
+            cols: [[ // 数据列表
+                {'type':'checkbox', 'totalRowText': '合计'},
+                {"field": "user_id", "title": "用户ID"},
+                {"field": "nickname", "title": "会员昵称"},
+                {"field": "sex", "title": "性别",'templet':function (d) {
+                        return d.sex === 1 ? "男" :"女";
+                    }},
+                {"field": "birthday", "title": "出生日期"},
+                {"field": "score", "title": "用户积分"},
+                {"field": "login", "title": "登录次数", 'totalRow': true},
+                {"field": "last_login_ip", "title": "最后登录IP"},
+                {"field": "last_login_time", "title": "最后登录时间"},
+                {"field": "status", "title": "状态",'templet':"#statusTpl"},
+                {'fixed': 'right', 'title': '操作', 'align': 'center', 'toolbar': '#operating'},
+            ]]
+        });
+
+        //搜索
+        layui.form.on('submit(search)', function (data) {
+            table_reload.reload({
+                where: data.field,
+                page: {
+                    pageNo: 1
+                }
+            });
+            return false;
+        });
+
+        //监听工具条
+        layui.table.on('tool(member)', function (obj) {
+            switch (obj.event) {
+                case "status": //状态
+                    var url = "{:Route::buildUrl('Member/setStatus')}";
+                    var param = {'value':Math.abs(obj.data.status - 1), 'user_id': obj.data.user_id};
+                    ajaxSubmit(url,param);
+                    break;
+                case 'detail':  //详情
+                    var url = "{:Route::buildUrl('Member/detail')}";
+                    var param = {'user_id':obj.data.user_id};
+                    window.location.href = createURL(url, param);
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+
+        //日期
+        layui.$('.dateTime').each(function () {
+            var datetime=layui.$(this).data('timeType'),
+                range=layui.$(this).data('range');
+            layui.laydate.render({
+                elem: this,
+                trigger: 'click',
+                type: datetime ? datetime :'datetime',
+                range: range ? range : true,
+            });
+        });
+
+        //监听工具栏
+        layui.table.on('toolbar(member)', function (obj) {
+            switch (obj.event) {
+                case 'toolbar':
+                    var url="{:Route::buildUrl('Member/setStatus')}",
+                        params = multiples(obj.config.id, 'user_id'),
+                        value = layui.$(this).data('value');
+                    console.log(value);
+                    if (!params) {
+                        layui.layer.msg('请选择数据!');
+                        return false;
+                    }
+                    ajaxSubmit(url, {'user_id': params, 'value': value}, 'post');
+                    break;
+                default:
+                    break;
+            }
+        });
+    });
+</script>
+{/block}

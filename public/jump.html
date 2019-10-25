@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <meta content="telephone=no,email=no" name="format-detection">
+    <meta name="wap-font-scale" content="no">
+    <title>系统提示</title>
+    <!-- head 中 -->
+    <link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.min.css" rel="stylesheet">
+    <!--<link href="https://cdn.bootcss.com/jquery-weui/1.2.0/css/jquery-weui.min.css" rel="stylesheet">-->
+</head>
+<body ontouchstart>
+<div class="container" id="container">
+    <div class="weui-msg">
+        <div class="weui-msg__icon-area">
+        <?php switch ($code ?? 0) { case 0:?>
+            <i class="weui-icon-warn weui-icon_msg"></i>
+            <?php break;  case 1:?>
+            <i class="weui-icon-success weui-icon_msg"></i>
+            <?php break;  } ?>
+        </div>
+        <div class="weui-msg__text-area">
+            <h1 class="weui-msg__title"><?php echo(strip_tags($msg ?? '咦?? 什么鬼~'));?></h1>
+            <p class="weui-msg__desc">
+                <b id="wait"><?php echo($wait ?? 3);?></b>秒后页面自动
+                <a id="href" href="<?php echo($url ?? 'javascript:void(0);');?>">跳转</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="weui-footer weui-footer_fixed-bottom">
+    <!--<p class="weui-footer__links">-->
+    <!--<a href="javascript:void(0);" class="weui-footer__link">底部链接</a>-->
+    <!--<a href="javascript:void(0);" class="weui-footer__link">底部链接</a>-->
+    <!--</p>-->
+    <p class="weui-footer__text">Copyright <a href="https://www.calm7.com">Static7 版权所有</a></p>
+</div>
+
+<!-- body 最后 -->
+<!--<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>-->
+<!--<script src="https://cdn.bootcss.com/jquery-weui/1.2.0/js/jquery-weui.min.js"></script>-->
+<script type="text/javascript">
+    (function(){
+        var wait = document.getElementById('wait'),
+            href = document.getElementById('href').href;
+        var interval = setInterval(function(){
+            var time = --wait.innerHTML;
+            if(time <= 0) {
+                location.href = href;
+                clearInterval(interval);
+            };
+        }, 1000);
+    })();
+</script>
+</body>
+</html>

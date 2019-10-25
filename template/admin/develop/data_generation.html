@@ -1,0 +1,298 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>简易数据列表模板生成</legend>
+</fieldset>
+<form class="layui-form" action="{:Route::buildUrl('dataTemplate')}" method="post">
+    <div class="layui-row">
+        <div class="layui-col-md10">
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">基础模板</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="请输入基础模板代码" name="base_temp" rows="20"
+                              class="layui-textarea">{$temp ?? ''}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md10">
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">保存路径</label>
+                <div class="layui-input-block">
+                    <input type="text" name="temp_path" lay-verify="required" value="" class="layui-input"
+                           placeholder="请输入文件保存路径,必须是模板路径下 {:App::getRootPath()}template/ "  >
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">请求数据列表URL</label>
+                <div class="layui-input-inline">
+                    <input type="tel" name="url" lay-verify="required" placeholder="例如:User/userInterface" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label">数据列表唯一容器标识</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="container" lay-verify="required" placeholder="div的ID标识"  class="layui-input">
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="layui-col-md10">
+            <div class="layui-form-item">
+                <label class="layui-form-label">搜索框类型</label>
+                <div class="layui-inline">
+                    <div class="layui-input-inline">
+                        <select id="inputType">
+                            <option value="0">文本框</option>
+                            <option value="1">隐藏域</option>
+                            <option value="2">下拉框</option>
+                            <option value="3">日期</option>
+                            <option value="4">地区联动</option>
+                            <option value="5">分类联动</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <button type="button" class="layui-btn add-input layui-btn-normal">添加搜索输入框</button>
+                </div>
+            </div>
+        </div>
+        <div class="input-append"></div>
+        <hr>
+
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">选择数据表</label>
+                <div class="layui-input-inline">
+                    <select class="tableSelect">
+                        <option value="">请选择表</option>
+                        {notempty name="table"}
+                            {volist name='table' id='vo'}
+                                <option value="{$vo.name ?? ''}">{$vo.name ?? ''}({$vo.title ?? ''})</option>
+                            {/volist}
+                        {/notempty}
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <button type="button" class="layui-btn buildTable layui-btn-normal">生成字段列表</button>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">数据列表</label>
+                    <button type="button" class="layui-btn add-data-input layui-btn-normal">添加数据列表输入框</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="add-data-append"></div>
+
+        <div class="layui-form-item" style="margin-top: 10px;">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="dataGenerate">立即提交</button>
+                <button type="button" class="layui-btn layui-btn-primary">取消</button>
+            </div>
+        </div>
+    </div>
+</form>
+{/block}
+{block name="script"}
+<script type="text/html" id="inputTpl">
+    {{# if (d.type==0 ){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">文本框</label>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][name]" lay-verify="required" placeholder="文本框的name名称" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][label]" lay-verify="required" placeholder="文本框的label名称" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <select name="search[{{ d.key }}][verify]">
+                    <option value="">自定义验证</option>
+                    <option value="required">必填项</option>
+                    <option value="url">网址</option>
+                    <option value="date">日期</option>
+                    <option value="email">邮箱</option>
+                    <option value="number">数字</option>
+                    <option value="phone">手机号</option>
+                    <option value="identity">身份证</option>
+                </select>
+            </div>
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+            <input type="hidden" name="search[{{ d.key }}][type]" value="{{ d.type }}">
+        </div>
+    </div>
+    {{# }else if (d.type==1){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">隐藏域</label>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][name]" lay-verify="required" placeholder="隐藏域的name名称"
+                       class="layui-input">
+            </div>
+            <input type="hidden" name="search[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==2){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">下拉框</label>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][name]" lay-verify="required" placeholder="下拉框的name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][label]" lay-verify="required" placeholder="文本框的label名称" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <select name="search[{{ d.key }}][verify]">
+                    <option value="">自定义验证</option>
+                    <option value="required">必填项</option>
+                    <option value="url">网址</option>
+                    <option value="date">日期</option>
+                    <option value="email">邮箱</option>
+                    <option value="number">数字</option>
+                    <option value="phone">手机号</option>
+                    <option value="identity">身份证</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <textarea class="layui-textarea" name="search[{{ d.key }}][select]" placeholder="下拉框选择参数 格式 参数:参数名 一行一个 例如:1:启用 2:禁用" rows="5"></textarea>
+            </div>
+            <input type="hidden" name="search[{{ d.key }}][type]" value="{{ d.type }}">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+    {{# }else if (d.type==3){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">日期</label>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][name]" value="cycle" lay-verify="required" placeholder="日期name名称"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][label]" lay-verify="required" placeholder="文本框的label名称" class="layui-input">
+            </div>
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+            <input type="hidden" name="search[{{ d.key }}][type]" value="{{ d.type }}">
+        </div>
+    </div>
+
+    {{# }else if (d.type==4){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">地区联动</label>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][url]" lay-verify="required" value="Common/linkageInterface" placeholder="URL名称,例如:User/userJson"
+                       class="layui-input">
+            </div>
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+            <input type="hidden" name="search[{{ d.key }}][type]" value="{{ d.type }}">
+        </div>
+    </div>
+    {{# }else if (d.type==5){ }}
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">分类联动</label>
+            <div class="layui-input-inline">
+                <input type="text" name="search[{{ d.key }}][url]" lay-verify="required" value="Common/categoryInterface" placeholder="URL名称,例如:User/userJson"
+                       class="layui-input">
+            </div>
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+            <input type="hidden" name="search[{{ d.key }}][type]" value="{{ d.type }}">
+        </div>
+    </div>
+    {{# } }}
+</script>
+<script type="text/html" id="dataTpl">
+    <div class="layui-form-item temp_{{ d.key }}">
+        <div class="layui-inline">
+            <label class="layui-form-label">数据列表</label>
+            <div class="layui-input-inline">
+                <input type="text" name="collection[{{ d.key }}][field]" value="{{ d.name ? d.name :'' }}" lay-verify="required" placeholder="field字段名"
+                       class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="collection[{{ d.key }}][title]" value="{{ d.title ? d.title :'' }}" lay-verify="required" placeholder="title名称"
+                       class="layui-input">
+            </div>
+            <input type="hidden" name="collection[{{ d.key }}][templet]" value="" class="layui-input">
+            <a href="javascript:removes('{{ d.key }}');" class="layui-btn layui-btn-danger">删除</a>
+        </div>
+    </div>
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('')}");
+    var key = 0;
+    layui.use(['jquery', 'form', 'laytpl', 'layer'], function () {
+        layui.$('.add-input').on('click', function () {
+            var type = layui.$('#inputType').val();
+            layui.laytpl(inputTpl.innerHTML).render({'key': key, 'type': type}, function (html) {
+                layui.$('.input-append').append(html);
+                layui.form.render();
+                key++;
+            });
+        });
+
+        layui.$('.add-data-input').on('click', function () {
+            layui.laytpl(dataTpl.innerHTML).render({'key': key}, function (html) {
+                layui.$('.add-data-append').append(html);
+                layui.form.render();
+                key++;
+            });
+        });
+
+        layui.form.on('submit(dataGenerate)', function (form) {
+            layui.$.post(form.form.action, form.field, function (data) {
+                if (data.code == 1) {
+                    alert_msg(data.msg, 1);
+                    layui.$(form.elem).prop('disabled', false);
+                    layui.$('input[name="temp_path"]').val('');
+                } else {
+                    alert_msg(data.msg, 0);
+                    layui.$(form.elem).prop('disabled', false);
+                }
+            })
+            return false;
+        });
+
+        //选择表
+        layui.$('.buildTable').on('click', function () {
+            var table = layui.$('.tableSelect').val();
+            console.log(table);
+            layui.$.post("{:Route::buildUrl('Develop/tableBuild')}", {'table': table}, function (data) {
+                layui.layer.msg(data.msg);
+                if (data.code === 0) {
+                    return false;
+                }
+                if (!data.data){
+                    return false;
+                }
+                layui.$.each(data.data, function (index, item) {
+                    item['key']=key;
+                    layui.laytpl(dataTpl.innerHTML).render(item, function (html) {
+                        layui.$('.add-data-append').append(html);
+                        layui.form.render();
+                        key++;
+                    });
+                });
+            });
+        });
+    });
+
+    function removes(key) {
+        layui.use(['jquery'], function () {
+            layui.$('.temp_' + key).remove();
+        });
+    }
+</script>
+{/block}

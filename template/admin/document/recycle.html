@@ -1,0 +1,60 @@
+{extend name="base/base" /}
+{block name="left"}
+{include file="document/sidebar" /}
+{/block}
+{block name="body"}
+<div class="layui-btn-group">
+    <button class="layui-btn layui-btn-sm layui-btn-danger ajax-post" url="{:Route::buildUrl('Document/physicalDelete')}" data-field="id" >物理删除</button>
+    <button class="layui-btn layui-btn-sm layui-btn-normal ajax-post" url="{:Route::buildUrl('Document/setStatus')}" data-field="id" data-value="2">还原</button>
+</div>
+
+<table class="layui-hide" id="article" lay-filter="article"></table>
+{/block}
+{block name="script"}
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href='#' lay-event="edit">编辑</a>
+    <a class="layui-table-link" href='#' lay-event="status">还原</a>
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Document/recycle')}");
+    layui.use(['jquery', 'form','element','table','laydate', 'layer'], function () {
+        table_reload = layui.table.render({
+            elem: '#article',
+            url: "{:Route::buildUrl('Document/creativeWorkInterface')}",
+            page: true,
+            where:{
+                'status':-1
+            },
+            method: 'post',
+            limit: 10,
+            id: "ids",
+            loading: false,
+            cols: [[ //标题栏
+                {checkbox: true},
+                {field: 'id', title: '编号'},
+                {field: 'title', title: '标题'},
+                {field: 'nickname', title: '作者'},
+                {field: 'category', title: '分类'},
+                {field: 'create_time', title: '删除时间'},
+                {fixed: 'right', title: '操作', align: 'center', toolbar: '#operating'},
+            ]]
+        });
+
+        //监听工具条
+        layui.table.on('tool(article)', function (obj) {
+            switch (obj.event) {
+                case "status":
+                    ajaxSubmit("{:Route::buildUrl('Document/setStatus')}",{'value':Math.abs(obj.data.status - 1), 'id': obj.data.id});
+                    break;
+                case 'edit':
+                    window.open(createURL("{:Route::buildUrl('Document/edit')}", {'id': obj.data.id,'category_id':obj.data.category_id}));
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+   });
+</script>
+
+{/block}

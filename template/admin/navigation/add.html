@@ -1,0 +1,76 @@
+{extend name="base/base" /}
+{block name="body"}
+<fieldset class="layui-elem-field layui-field-title mt-15">
+    <legend>新增导航</legend>
+</fieldset>
+<div class="layui-row">
+    <div class="layui-col-xs12 layui-col-md4">
+<form class="layui-form" action="{:Route::buildUrl('renew')}" method="post">
+    <div class="layui-form-item">
+        <label class="layui-form-label">标题</label>
+        <div class="layui-input-block">
+            <input type="text" name="title" lay-verify="required"  placeholder="用于显示的文字" class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux"></div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">链接</label>
+        <div class="layui-input-block">
+            <input type="text" name="url" lay-verify="required" placeholder="用于调转的URL，支持带http://的URL或{: Route::buildUrl('')}函数参数格式" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span style="color: red;">所属模块</span></label>
+        <div class="layui-input-inline">
+            {php}$module=Config::get('app.module',[]);{/php}
+            <select name="module" lay-verify="required">
+                <option value="">请选择</option>
+                {notempty name='module'}
+                {volist name="module" id="vo"}
+                <option value="{$key}">{$vo}</option>
+                {/volist}
+                {/notempty}
+            </select>
+            <div class="layui-word-aux"><span style="color: red;">所属应用模块</span></div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">新窗口打开</label>
+        <div class="layui-input-block">
+            <input type="radio" name="target" value="1" title="是" >
+            <input type="radio" name="target" value="0" title="否" checked>
+        </div>
+        <div class="layui-form-mid layui-word-aux">是否新窗口打开链接</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">优先级</label>
+        <div class="layui-input-block">
+            <input type="text" name="sort" placeholder="导航显示顺序" lay-verify="required|number" value="0" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="pid" value="{$pid ?? 0}">
+            <button class="layui-btn" lay-submit="" lay-filter="channel">立即提交</button>
+            <button  class="layui-btn layui-btn-primary retreat">取消</button>
+        </div>
+    </div>
+</form>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Navigation/index')}");
+    //监听提交
+    layui.use(['jquery', 'form', 'layer'], function () {
+        layui.form.on('submit(channel)', function (data) {
+            layui.$.post(data.form.action, data.field, function (info) {
+                status_load(info, data.elem);
+            });
+            return false;
+        });
+    })
+</script>
+{/block}

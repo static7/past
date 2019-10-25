@@ -1,0 +1,173 @@
+{extend name="base/base" /}
+{block name="body"}
+<form class="layui-form form-data">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label w-auto">权限组</label>
+            <div class="layui-input-inline">
+                <select name="group_id" lay-filter="group_id">
+                    <option value="">请选择权限组</option>
+                    {notempty name="auth_group"}
+                    {volist name="auth_group" id="vo"}
+                    <option value="{$vo['id']}">{$vo.title}</option>
+                    {/volist}
+                    {/notempty}
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="search">查询</button>
+        </div>
+    </div>
+</form>
+<div class="layui-btn-group">
+    <a class="layui-btn layui-btn-sm layui-btn-normal addToGroup" href="javascript:void(0);">新增授权</a>
+    <a class="layui-btn layui-btn-sm layui-btn-danger removeToGroup" data-field="user_id" url="{:Route::buildUrl('removeToGroup')}">移除授权</a>
+</div>
+<table class="layui-hide" id="user" lay-filter="user"></table>
+
+{/block}
+{block name="script"}
+<script type="text/html" id="statusTpl">
+    {{# if(d.user){ }}
+        {{#  if(d.user.status === 1){return "正常"; } else {return "禁用";} }}
+    {{# } }}
+</script>
+<script type="text/html" id="operating">
+    <a class="layui-table-link" href='#' lay-event="relieve">解除授权</a>
+</script>
+<script type="text/javascript">
+    UrlHighlight("{:Route::buildUrl('Competence/user')}");
+    //监听提交
+    layui.use(['jquery', 'form', 'table', 'layer'], function () {
+        table_reload = layui.table.render({
+            elem: '#user',
+            url: "{:Route::buildUrl('Competence/authAccessInterface')}",
+            page: true,
+            method: 'post',
+            limit: 10,
+            response: {
+                statusName: 'code', //数据状态的字段名称，默认：code
+                statusCode: 0, //成功的状态码，默认：0
+                msgName: 'msg', //状态信息的字段名称，默认：msg
+                countName: 'total', //数据总数的字段名称，默认：count
+                dataName: 'data', //数据列表的字段名称，默认：data
+            },
+            id: "ids",
+            cols: [[ //标题栏
+                {checkbox: true},
+                {field: 'user_id', title: '用户ID','templet':function (d) {
+                        return d.user ? d.user.user_id : '';
+                    }},
+                {field: 'nickname', title: '昵称','templet':function (d) {
+                        return d.user ? d.user.nickname :'';
+                    }},
+                {field: 'last_login_time', title: '最后登录时间','templet':function (d) {
+                        return d.user ? d.user.last_login_time :"";
+                    }},
+                {field: 'last_login_ip', title: '最后登录IP','templet':function (d) {
+                        return d.user ? d.user.last_login_ip :"";
+                    }},
+                {field: 'status', title: '状态', templet: '#statusTpl'},
+                {fixed: 'right', title: '操作', align: 'center', toolbar: '#operating'},
+            ]]
+        });
+
+        //监听工具条
+        layui.table.on('tool(user)', function (obj) {
+            switch (obj.event) {
+                case "relieve":
+                    layui.layer.confirm('确定执行该操作吗?', function (index) {
+                        layui.layer.close(index);
+                        layui.$.post("{:Route::buildUrl('Competence/removeUserFromGroup')}", {
+                            'user_id': obj.data.user_id,'group_id':obj.data.group_id
+                        }, function (data) {
+                            if (data.code === 0) {
+                                alert_msg(data.msg, 0)
+                                return false;
+                            }
+                            alert_msg(data.msg, 1);
+                            setTimeout(function () {
+                                table_reload.reload();
+                            }, 1500);
+                        });
+                    });
+                    break;
+                default:
+                    layui.layer.msg('噢，天啊！你点了什么？');
+                    break;
+            }
+        });
+
+        //添加用户到组
+        layui.form.on('submit(group)', function (data) {
+            layui.$.post(data.form.action, data.field, function (info) {
+                layui.layer.msg(info.msg);
+                setTimeout(function () {
+                    layui.layer.close(pop_up);
+                    table_reload.reload();
+                },1300);
+
+            })
+            return false;
+        });
+
+        //搜索
+        layui.form.on('submit(search)', function (data) {
+            table_reload.reload({
+                where: data.field,
+                page: {
+                    pageNo: 1
+                }
+            });
+            return false;
+        });
+
+        layui.$('.addToGroup').on('click', function () {
+            var groupId=layui.$('select[name="group_id"]').val();
+            console.log(groupId);
+            if (groupId==='' || groupId ===undefined ||groupId ===null){
+                layui.layer.msg('请选择权限组');
+                return false;
+            }
+            layui.$('input[name="group_id"]').val(groupId);
+            pop_up=layui.layer.open({
+                type: 1,
+                title: "添加用户",
+                area: '550px',
+                offset: '300px',
+                content: layui.$('#addUsertpl')
+            });
+        });
+
+        //批量移除组
+        layui.$('.removeToGroup').on('click',function () {
+            var params = multiples('ids', 'user_id'),
+                url = layui.$(this).attr('url'),
+                groupId=layui.$('select[name="group_id"]').val();
+            if (!params) {
+                layui.layer.msg('请选择数据!');
+                return false;
+            }
+            ajaxSubmit(url, {'user_id': params,'group_id':groupId}, 'post');
+        });
+    })
+</script>
+<div id="addUsertpl" style="display: none;">
+    <form class="layui-form" style="margin: 15px;" action="{:Route::buildUrl('Competence/addUserToGroup')}" method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label w-0">用户UID</label>
+            <div class="layui-input-block">
+                <input type="text" name="user_id" lay-verify="required" placeholder="多个UID用英文逗号分隔"
+                       class="layui-input">
+                <input type="hidden" name="group_id" value="{$group_id ?? ''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit="" lay-filter="group">立即提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+{/block}
