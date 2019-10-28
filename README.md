@@ -92,6 +92,8 @@ host=tp6.com
     ],
 ~~~
 
+### composer不会的用的,我也没有办法了
+
 ### mysql数据库    
 
 data目录下的`past.sql`文件    
