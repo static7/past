@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": ">=7.1.0",
-        "topthink/framework": "6.0.*-dev",
+        "topthink/framework": "^6.0.0",
         "topthink/think-view": "^1.0",
         "qcloud/cos-sdk-v5": ">=2.0",
         "curl/curl": "^1.9",

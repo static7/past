@@ -19,7 +19,7 @@
 8.加入了内容模块和网站模块 (可用作CMS内容管理系统,其实模块可以删掉)
 
 
-##开发要求
+## 开发要求
 * 请遵循thinkphp开发规范章节 传送门:[开发规范](https://www.kancloud.cn/manual/thinkphp6_0/1037482)
 * 请使用强类型入参   
 ~~~php
@@ -92,6 +92,8 @@ host=tp6.com
     ],
 ~~~
 
+### composer不会的用的,我也没有办法了
+
 ### mysql数据库    
 
 data目录下的`past.sql`文件    
@@ -108,7 +110,7 @@ sql-mode="NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"tp6
 ~~~     
 
 
-###感谢开源贡献者
+### 感谢开源贡献者
 
 * thinkphp 官方
 * layui 前端框架
