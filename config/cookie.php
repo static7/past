@@ -22,7 +22,7 @@ return [
     // cookie 有效域名
     'domain'    => Env::get('app.host',''),
     //  cookie 启用安全传输
-    'secure'    => true,
+    'secure'    => false,
     // httponly设置
     'httponly'  => true,
     // 是否使用 setcookie
