@@ -22,8 +22,8 @@ class Member extends Model
     protected $pk = 'user_id';
     protected $autoWriteTimestamp = true;
     // 定义时间戳字段名
-    protected $update = [];
     protected $insert = ['reg_ip'=>'','reg_time'=>''];
+    protected $update = [];
 
     /**
      * 会员注册

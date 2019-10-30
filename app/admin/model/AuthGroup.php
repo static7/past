@@ -20,8 +20,6 @@ class AuthGroup extends Model
         'status'      => 1,
         'type'        => '',
         'module'      => '',
-        'description' => '',
-        'title'       => '',
     ];
     protected $update = [
         'type' => ''

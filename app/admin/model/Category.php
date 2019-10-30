@@ -15,8 +15,8 @@ class Category extends Model
 {
     use Models;
     protected $autoWriteTimestamp = true; //自动写入创建和更新的时间戳字段
-    protected $insert             = ['status' => 1,'meta_title'=>''];
-    protected $update             = ['title'=>'','meta_title'=>''];
+    protected $insert             = ['status' => 1];
+    protected $update             = [];
 
     /**
      * 相对关联
