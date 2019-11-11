@@ -105,7 +105,7 @@ class Develop
             return $this->error('表不能为空');
         }
         $data=Db::table("information_schema.columns")
-            ->where('table_schema' ,'=', $this->app->config->get('database.database_admin','past'))
+            ->where('table_schema' ,'=', $this->app->config->get('database.database','past'))
             ->where('table_name' ,'=', $param['table'] )
             ->field(['column_comment'=>'title','column_name'=>'name'])
             ->select();
