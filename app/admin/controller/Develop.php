@@ -105,11 +105,11 @@ class Develop
             return $this->error('表不能为空');
         }
         $data=Db::table("information_schema.columns")
-            ->where('table_schema' ,'=', $this->app->config->get('database.database','thought'))
+            ->where('table_schema' ,'=', $this->app->config->get('database.database_admin','past'))
             ->where('table_name' ,'=', $param['table'] )
             ->field(['column_comment'=>'title','column_name'=>'name'])
             ->select();
-        return $this->result($data ?? [],1,'生成完成','json');
+        return $this->result($data->isEmpty() ? []:$data->toArray(),1,'生成完成','json');
     }
 
 
